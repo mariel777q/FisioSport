@@ -1,0 +1,43 @@
+﻿@model FISIOSPORT.Models.DashboardFisioViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <h2 class="text-2xl font-extrabold text-white">@Model.Nombre</h2>
+        <p class="text-gray-400 text-sm mt-1">@Model.Especialidad &middot; Colegiado @Model.NumeroColegiado</p>
+    </div>
+    <a asp-controller="Fisioterapeuta" asp-action="CrearCita"
+       class="inline-flex items-center gap-2 bg-cyan-400 text-[#0d1117] font-bold px-5 py-2.5 rounded-lg hover:bg-cyan-300 transition shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+        + Nueva cita
+    </a>
+</div>
+
+<h3 class="text-gray-300 font-semibold mb-4">Próximas citas</h3>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    @if (!Model.Citas.Any())
+    {
+        <p class="text-gray-500 col-span-full">Todavía no tienes citas agendadas.</p>
+    }
+    @foreach (var cita in Model.Citas)
+    {
+        var colorEstado = cita.Estado switch
+        {
+            "Confirmada" => "bg-emerald-400/10 text-emerald-400 border-emerald-400/30",
+            "Pendiente" => "bg-amber-400/10 text-amber-400 border-amber-400/30",
+            "Completada" => "bg-gray-400/10 text-gray-300 border-gray-400/30",
+            _ => "bg-red-400/10 text-red-400 border-red-400/30"
+        };
+
+        <div class="rounded-xl border border-gray-800 bg-[#161b22] p-5 hover:border-cyan-400/40 transition">
+            <div class="flex items-start justify-between mb-3">
+                <h4 class="font-semibold text-gray-100">@cita.NombrePaciente</h4>
+                <span class="text-[11px] px-2 py-0.5 rounded-full border @colorEstado">@cita.Estado</span>
+            </div>
+            <p class="text-sm text-gray-400">@cita.Fecha.ToString("dd MMM yyyy")</p>
+            <p class="text-sm text-gray-400">@cita.Hora</p>
+        </div>
+    }
+</div>
