@@ -1,24 +1,35 @@
-﻿# Etapa 1: Compilación
+﻿# ==========================================
+# ETAPA 1: COMPILACIÓN
+# ==========================================
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-COPY FISIOSPORT/FISIOSPORT/FISIOSPORT.csproj FISIOSPORT/
+# Copiar el archivo del proyecto
+COPY FISIOSPORT/FISIOSPORT.csproj FISIOSPORT/
 
+# Restaurar paquetes NuGet
 RUN dotnet restore FISIOSPORT/FISIOSPORT.csproj
 
-COPY FISIOSPORT/FISIOSPORT/ FISIOSPORT/
+# Copiar el código del proyecto
+COPY FISIOSPORT/ FISIOSPORT/
 
-RUN dotnet publish FISIOSPORT/FISIOSPORT/FISIOSPORT.csproj -c Release -o /app/publish --no-restore
+# Compilar y publicar
+RUN dotnet publish FISIOSPORT/FISIOSPORT.csproj -c Release -o /app/publish --no-restore
 
 
-# Etapa 2: Ejecución
+# ==========================================
+# ETAPA 2: EJECUCIÓN
+# ==========================================
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 WORKDIR /app
 
+# Copiar la aplicación publicada
 COPY --from=build /app/publish .
 
+# Render proporciona PORT
 ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 
+# Iniciar FisioSport
 ENTRYPOINT ["dotnet", "FISIOSPORT.dll"]
