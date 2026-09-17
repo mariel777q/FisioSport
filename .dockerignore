@@ -1,0 +1,15 @@
+﻿.vs/
+.vscode/
+
+**/bin/
+**/obj/
+
+.git/
+.gitignore
+.gitattributes
+
+*.user
+*.suo
+*.tmp
+*.temp
+*.log
