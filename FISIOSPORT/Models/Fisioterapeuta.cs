@@ -21,6 +21,20 @@ namespace FISIOSPORT.Models
         [MaxLength(50)]
         public string NumeroColegiado { get; set; } = string.Empty;
 
-        public ICollection<Cita> Citas { get; set; } = new List<Cita>();
+        // Citas asignadas a este fisioterapeuta
+        public ICollection<Cita> Citas { get; set; }
+            = new List<Cita>();
+
+        // Tratamientos realizados por este fisioterapeuta
+        public ICollection<Tratamiento> Tratamientos { get; set; }
+            = new List<Tratamiento>();
+        public ICollection<ConsultaClinica> ConsultasClinicas { get; set; }
+    = new List<ConsultaClinica>();
+
+        public ICollection<ProgramaRehabilitacion> ProgramasRehabilitacion { get; set; }
+            = new List<ProgramaRehabilitacion>();
+
+        public ICollection<EvolucionDiaria> Evoluciones { get; set; }
+            = new List<EvolucionDiaria>();
     }
 }

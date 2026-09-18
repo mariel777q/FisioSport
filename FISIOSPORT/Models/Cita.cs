@@ -7,10 +7,16 @@ namespace FISIOSPORT.Models
         public int Id { get; set; }
 
         public int FisioterapeutaId { get; set; }
+
         public Fisioterapeuta? Fisioterapeuta { get; set; }
 
         public int PacienteId { get; set; }
+
         public Paciente? Paciente { get; set; }
+
+        public int? SesionTratamientoId { get; set; }
+
+        public SesionTratamiento? SesionTratamiento { get; set; }
 
         [Required]
         public DateTime Fecha { get; set; }

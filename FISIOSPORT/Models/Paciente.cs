@@ -22,5 +22,16 @@ namespace FISIOSPORT.Models
         public string ContactoEmergencia { get; set; } = string.Empty;
 
         public ICollection<Cita> Citas { get; set; } = new List<Cita>();
+
+        public ICollection<Tratamiento> Tratamientos { get; set; }
+            = new List<Tratamiento>();
+        public ICollection<ConsultaClinica> ConsultasClinicas { get; set; }
+    = new List<ConsultaClinica>();
+
+        public ICollection<ProgramaRehabilitacion> ProgramasRehabilitacion { get; set; }
+            = new List<ProgramaRehabilitacion>();
+
+        public ICollection<RegistroEjercicioPaciente> RegistrosEjercicios { get; set; }
+            = new List<RegistroEjercicioPaciente>();
     }
 }
