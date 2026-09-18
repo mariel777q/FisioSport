@@ -261,7 +261,7 @@ app.MapGet("/health", () => Results.Ok("FisioSport OK"));
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}"
+    pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 
 app.Run();
