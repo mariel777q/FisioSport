@@ -1,22 +1,20 @@
 ﻿@{
-    ViewData["Title"] = "FisioSport | Fisioterapia y Rehabilitación";
+    ViewData["Title"] = "FisioSport | Centro de Fisioterapia";
 }
-
-<!-- =========================================================
-     FISIOSPORT - LANDING PAGE
-     ========================================================= -->
 
 <style>
     :root {
         --fs-bg: #0a101d;
-        --fs-bg-soft: #0d1117;
-        --fs-card: rgba(18, 28, 43, 0.78);
-        --fs-card-light: rgba(255, 255, 255, 0.04);
+        --fs-bg-soft: #0d1524;
+        --fs-card: rgba(17, 27, 43, 0.72);
+        --fs-card-solid: #111b2b;
+        --fs-border: rgba(255, 255, 255, 0.10);
+        --fs-border-cyan: rgba(0, 240, 255, 0.28);
         --fs-cyan: #00f0ff;
-        --fs-cyan-soft: rgba(0, 240, 255, 0.14);
-        --fs-text: #f5f9ff;
-        --fs-muted: #9baabd;
-        --fs-border: rgba(255, 255, 255, 0.09);
+        --fs-cyan-soft: rgba(0, 240, 255, 0.12);
+        --fs-text: #f3f7fb;
+        --fs-muted: #aab6c7;
+        --fs-radius: 20px;
     }
 
     html {
@@ -26,777 +24,1029 @@
     body {
         background: var(--fs-bg);
         color: var(--fs-text);
-        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        overflow-x: hidden;
     }
 
-    .fs-navbar {
-        background: rgba(10, 16, 29, 0.82);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    /* =========================================================
+           GENERAL
+           ========================================================= */
+
+    .fs-section {
+        position: relative;
+        padding: 72px 0;
     }
 
-    .fs-brand {
-        font-size: 1.45rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        color: #fff;
-        text-decoration: none;
+    .fs-section-dark {
+        background: radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.055), transparent 30%), var(--fs-bg);
     }
 
-        .fs-brand span {
+    .fs-section-soft {
+        background: linear-gradient(180deg, #0d1524 0%, #0a101d 100%);
+    }
+
+    .fs-container {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+    }
+
+    .fs-section-heading {
+        max-width: 760px;
+        margin: 0 auto 42px;
+        text-align: center;
+    }
+
+        .fs-section-heading span {
+            display: inline-block;
+            margin-bottom: 10px;
             color: var(--fs-cyan);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
         }
 
-    .fs-nav-link {
-        color: #b9c5d5 !important;
-        font-weight: 500;
-        transition: 0.25s ease;
+        .fs-section-heading h2 {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(1.9rem, 3vw, 2.8rem);
+            line-height: 1.12;
+            font-weight: 800;
+        }
+
+        .fs-section-heading p {
+            margin: 15px auto 0;
+            max-width: 650px;
+            color: var(--fs-muted);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+    .fs-glass {
+        background: var(--fs-card);
+        border: 1px solid var(--fs-border);
+        border-radius: var(--fs-radius);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.20);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
 
-        .fs-nav-link:hover {
-            color: var(--fs-cyan) !important;
-        }
-
-    .btn-fs-primary {
-        background: var(--fs-cyan);
-        color: #061018;
-        border: 1px solid var(--fs-cyan);
-        font-weight: 700;
-        border-radius: 12px;
-        padding: 11px 20px;
-        box-shadow: 0 0 25px rgba(0, 240, 255, 0.12);
-        transition: 0.25s ease;
-    }
-
-        .btn-fs-primary:hover {
-            color: #061018;
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.25);
-        }
-
-    .btn-fs-outline {
-        background: rgba(255,255,255,0.03);
-        color: #fff;
-        border: 1px solid rgba(255,255,255,0.14);
-        font-weight: 600;
-        border-radius: 12px;
-        padding: 11px 20px;
-        transition: 0.25s ease;
-    }
-
-        .btn-fs-outline:hover {
-            color: var(--fs-cyan);
-            border-color: rgba(0,240,255,0.5);
-            transform: translateY(-2px);
-        }
-
-    /* HERO */
+    /* =========================================================
+           HERO
+           ========================================================= */
 
     .fs-hero {
         position: relative;
-        min-height: 760px;
-        display: flex;
-        align-items: center;
+        padding: 58px 0 66px;
+        background: radial-gradient(circle at 75% 35%, rgba(0, 240, 255, 0.12), transparent 28%), radial-gradient(circle at 15% 80%, rgba(0, 240, 255, 0.06), transparent 28%), var(--fs-bg);
         overflow: hidden;
-        background: radial-gradient(circle at 75% 25%, rgba(0,240,255,0.10), transparent 30%), radial-gradient(circle at 10% 70%, rgba(0,140,255,0.08), transparent 30%), var(--fs-bg);
     }
 
         .fs-hero::before {
             content: "";
             position: absolute;
-            inset: 0;
-            background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-            background-size: 50px 50px;
-            mask-image: linear-gradient(to bottom, black, transparent);
+            width: 420px;
+            height: 420px;
+            right: -180px;
+            top: -180px;
+            border-radius: 50%;
+            background: rgba(0, 240, 255, 0.035);
             pointer-events: none;
         }
 
-    .fs-hero-content {
-        position: relative;
-        z-index: 2;
+    .fs-hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+        gap: 54px;
+        align-items: center;
     }
 
-    .fs-badge {
+    .fs-hero-content {
+        max-width: 650px;
+    }
+
+    .fs-hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         padding: 8px 13px;
+        border: 1px solid var(--fs-border-cyan);
         border-radius: 999px;
-        background: var(--fs-cyan-soft);
-        border: 1px solid rgba(0,240,255,0.22);
+        background: rgba(0, 240, 255, 0.06);
         color: var(--fs-cyan);
-        font-size: 0.82rem;
+        font-size: 0.76rem;
         font-weight: 700;
-        margin-bottom: 22px;
+        letter-spacing: 0.04em;
     }
 
-        .fs-badge i {
-            font-size: 0.9rem;
-        }
-
-    .fs-hero h1 {
-        font-size: clamp(2.8rem, 6vw, 5.2rem);
-        line-height: 1.02;
-        letter-spacing: -3px;
-        font-weight: 800;
-        max-width: 760px;
-        margin-bottom: 25px;
+    .fs-hero-title {
+        margin: 18px 0 18px;
+        font-size: clamp(2.4rem, 5vw, 4.6rem);
+        font-weight: 900;
+        line-height: 0.98;
+        letter-spacing: -0.045em;
+        color: #ffffff;
     }
 
-        .fs-hero h1 span {
+        .fs-hero-title span {
+            display: block;
             color: var(--fs-cyan);
         }
 
-    .fs-hero-description {
+    .fs-hero-text {
+        max-width: 600px;
+        margin: 0;
         color: var(--fs-muted);
-        font-size: 1.1rem;
-        line-height: 1.8;
-        max-width: 650px;
-        margin-bottom: 32px;
+        font-size: clamp(0.98rem, 1.5vw, 1.1rem);
+        line-height: 1.75;
     }
 
-    .fs-hero-actions {
+    .fs-hero-buttons {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin-bottom: 45px;
+        margin-top: 28px;
     }
 
-    .fs-trust {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 25px;
-    }
-
-    .fs-trust-item {
-        display: flex;
+    .fs-btn {
+        display: inline-flex;
         align-items: center;
-        gap: 10px;
-        color: #c8d2df;
-        font-size: 0.9rem;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 11px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 800;
+        transition: 0.25s ease;
     }
 
-        .fs-trust-item i {
-            color: var(--fs-cyan);
-            font-size: 1.15rem;
+    .fs-btn-primary {
+        border: 1px solid var(--fs-cyan);
+        background: var(--fs-cyan);
+        color: #061017;
+        box-shadow: 0 8px 25px rgba(0, 240, 255, 0.16);
+    }
+
+        .fs-btn-primary:hover {
+            transform: translateY(-2px);
+            color: #061017;
+            box-shadow: 0 12px 32px rgba(0, 240, 255, 0.28);
         }
 
-    /* HERO IMAGE CARD */
+    .fs-btn-outline {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.035);
+        color: #ffffff;
+    }
+
+        .fs-btn-outline:hover {
+            transform: translateY(-2px);
+            border-color: var(--fs-cyan);
+            color: var(--fs-cyan);
+        }
 
     .fs-hero-visual {
         position: relative;
-        z-index: 2;
     }
 
-    .fs-image-card {
+    .fs-hero-image {
         position: relative;
+        aspect-ratio: 16 / 11;
+        min-height: 360px;
         overflow: hidden;
-        border-radius: 28px;
-        border: 1px solid rgba(255,255,255,0.13);
-        box-shadow: 0 30px 80px rgba(0,0,0,0.4);
-        min-height: 540px;
+        border: 1px solid var(--fs-border-cyan);
+        border-radius: 24px;
+        background: #101a29;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.30);
     }
 
-        .fs-image-card img {
+        .fs-hero-image img {
             width: 100%;
-            height: 540px;
-            object-fit: cover;
+            height: 100%;
             display: block;
+            object-fit: cover;
+            object-position: center;
         }
 
-    .fs-image-overlay {
+    .fs-hero-overlay {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(5,10,18,0.92), rgba(5,10,18,0.05) 65%);
-    }
-
-    .fs-floating-card {
-        position: absolute;
-        left: 24px;
-        right: 24px;
-        bottom: 24px;
+        inset: auto 16px 16px 16px;
         padding: 18px;
-        border-radius: 18px;
-        background: rgba(8,15,27,0.75);
-        border: 1px solid rgba(255,255,255,0.12);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        background: rgba(5, 12, 22, 0.72);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
 
-    .fs-floating-card-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-
-        .fs-floating-card-title i {
-            color: var(--fs-cyan);
+        .fs-hero-overlay strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #ffffff;
+            font-size: 1rem;
         }
 
-    .fs-floating-card p {
-        color: var(--fs-muted);
-        font-size: 0.88rem;
-        margin: 0;
+        .fs-hero-overlay span {
+            color: #b9c6d5;
+            font-size: 0.88rem;
+        }
+
+    .fs-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 14px;
     }
 
-    /* BENEFITS */
+    .fs-stat {
+        padding: 13px 10px;
+        text-align: center;
+        border: 1px solid var(--fs-border);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.025);
+    }
+
+        .fs-stat strong {
+            display: block;
+            color: var(--fs-cyan);
+            font-size: 1.2rem;
+        }
+
+        .fs-stat span {
+            display: block;
+            margin-top: 3px;
+            color: var(--fs-muted);
+            font-size: 0.7rem;
+        }
+
+    /* =========================================================
+           BENEFITS
+           ========================================================= */
 
     .fs-benefits {
-        position: relative;
-        z-index: 5;
-        margin-top: -55px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
     }
 
-    .fs-benefit-card {
+    .fs-info-card {
         height: 100%;
         padding: 25px;
-        border-radius: 18px;
-        background: rgba(17,27,42,0.9);
         border: 1px solid var(--fs-border);
-        backdrop-filter: blur(14px);
-        transition: 0.3s ease;
+        border-radius: var(--fs-radius);
+        background: rgba(17, 27, 43, 0.58);
+        transition: 0.25s ease;
     }
 
-        .fs-benefit-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(0,240,255,0.35);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        .fs-info-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--fs-border-cyan);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.20);
         }
 
-    .fs-benefit-icon {
+    .fs-icon {
         width: 48px;
         height: 48px;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
+        margin-bottom: 16px;
         border-radius: 14px;
         background: var(--fs-cyan-soft);
         color: var(--fs-cyan);
         font-size: 1.35rem;
-        margin-bottom: 17px;
     }
 
-    .fs-benefit-card h5 {
-        font-weight: 700;
-        margin-bottom: 7px;
+    .fs-info-card h3 {
+        margin: 0 0 9px;
+        color: #ffffff;
+        font-size: 1.12rem;
+        font-weight: 800;
     }
 
-    .fs-benefit-card p {
-        color: var(--fs-muted);
+    .fs-info-card p {
         margin: 0;
+        color: var(--fs-muted);
+        line-height: 1.65;
+        font-size: 0.92rem;
+    }
+
+    /* =========================================================
+           SERVICES
+           ========================================================= */
+
+    .fs-service-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .fs-service-card {
+        overflow: hidden;
+        border: 1px solid var(--fs-border);
+        border-radius: var(--fs-radius);
+        background: var(--fs-card);
+        transition: 0.28s ease;
+    }
+
+        .fs-service-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--fs-border-cyan);
+        }
+
+    .fs-service-image {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        background: #111b2b;
+    }
+
+        .fs-service-image img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.35s ease;
+        }
+
+    .fs-service-card:hover .fs-service-image img {
+        transform: scale(1.045);
+    }
+
+    .fs-service-content {
+        padding: 20px;
+    }
+
+    .fs-service-icon {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        border-radius: 11px;
+        background: var(--fs-cyan-soft);
+        color: var(--fs-cyan);
+    }
+
+    .fs-service-content h3 {
+        margin: 0 0 7px;
+        color: #ffffff;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+    .fs-service-content p {
+        margin: 0;
+        color: var(--fs-muted);
         font-size: 0.9rem;
         line-height: 1.6;
     }
 
-    /* SECTIONS */
+    /* =========================================================
+           INSTALACIONES
+           ========================================================= */
 
-    .fs-section {
-        padding: 110px 0;
+    .fs-facility-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
     }
 
-    .fs-section-soft {
-        background: #0d1117;
+    .fs-facility-card {
+        height: 100%;
+        padding: 24px;
+        border: 1px solid var(--fs-border);
+        border-radius: var(--fs-radius);
+        background: rgba(17, 27, 43, 0.62);
     }
 
-    .fs-section-header {
-        max-width: 720px;
-        margin: 0 auto 55px;
-        text-align: center;
+    .fs-facility-image {
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        margin-bottom: 18px;
+        border-radius: 15px;
+        background: #101a29;
     }
 
-    .fs-section-label {
-        color: var(--fs-cyan);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-size: 0.75rem;
-        font-weight: 800;
-        margin-bottom: 12px;
+        .fs-facility-image img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+    .fs-facility-card h3 {
+        margin: 0 0 8px;
+        color: #ffffff;
+        font-size: 1.1rem;
     }
 
-    .fs-section-header h2 {
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        font-weight: 800;
-        letter-spacing: -1.5px;
-        margin-bottom: 15px;
-    }
-
-    .fs-section-header p {
-        color: var(--fs-muted);
-        line-height: 1.8;
+    .fs-facility-card p {
         margin: 0;
+        color: var(--fs-muted);
+        line-height: 1.6;
+        font-size: 0.9rem;
     }
 
-    /* SPECIALISTS */
+    /* =========================================================
+           SPECIALISTS
+           ========================================================= */
+
+    .fs-specialists {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
 
     .fs-specialist-card {
         height: 100%;
         overflow: hidden;
-        border-radius: 22px;
-        background: var(--fs-card);
         border: 1px solid var(--fs-border);
-        transition: 0.3s ease;
+        border-radius: var(--fs-radius);
+        background: rgba(17, 27, 43, 0.72);
+        transition: 0.28s ease;
     }
 
         .fs-specialist-card:hover {
-            transform: translateY(-7px);
-            border-color: rgba(0,240,255,0.35);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: translateY(-5px);
+            border-color: var(--fs-border-cyan);
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.24);
         }
 
     .fs-specialist-photo {
         position: relative;
-        height: 330px;
+        aspect-ratio: 4 / 3;
         overflow: hidden;
+        background: #101a29;
     }
 
         .fs-specialist-photo img {
             width: 100%;
             height: 100%;
+            display: block;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            object-position: center top;
         }
 
-    .fs-specialist-card:hover .fs-specialist-photo img {
-        transform: scale(1.04);
+    .fs-specialist-content {
+        display: flex;
+        min-height: 245px;
+        flex-direction: column;
+        padding: 21px;
     }
 
-    .fs-specialist-photo::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(8,14,24,0.7), transparent 50%);
-    }
-
-    .fs-specialist-body {
-        padding: 23px;
-    }
-
-        .fs-specialist-body h4 {
-            font-weight: 750;
-            margin-bottom: 6px;
+        .fs-specialist-content h3 {
+            margin: 0 0 6px;
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 800;
         }
 
     .fs-specialty {
+        margin: 0 0 12px;
         color: var(--fs-cyan);
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         font-weight: 700;
-        margin-bottom: 7px;
     }
 
-    .fs-license {
-        color: #7f8da0;
-        font-size: 0.82rem;
-        margin-bottom: 18px;
+    .fs-specialist-content p.description {
+        margin: 0;
+        color: var(--fs-muted);
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .fs-collegiado {
+        margin-top: 12px;
+        color: #dce5ef;
+        font-size: 0.8rem;
     }
 
     .fs-whatsapp {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
         width: 100%;
-        padding: 11px;
-        border-radius: 11px;
-        color: #fff;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        text-decoration: none;
-        font-weight: 650;
-        transition: 0.25s ease;
+        margin-top: auto;
+        padding-top: 17px;
     }
 
-        .fs-whatsapp:hover {
-            color: #fff;
-            background: rgba(0,240,255,0.10);
-            border-color: rgba(0,240,255,0.35);
-        }
-
-    /* SERVICES */
-
-    .fs-service-card {
-        position: relative;
-        min-height: 340px;
-        overflow: hidden;
-        border-radius: 22px;
-        border: 1px solid var(--fs-border);
-        background: #111a29;
-        transition: 0.35s ease;
-    }
-
-        .fs-service-card img {
-            position: absolute;
-            inset: 0;
+        .fs-whatsapp a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.55s ease;
+            min-height: 44px;
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 11px;
+            background: rgba(255, 255, 255, 0.035);
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.86rem;
+            font-weight: 800;
+            transition: 0.25s ease;
         }
 
-        .fs-service-card:hover img {
-            transform: scale(1.06);
-        }
+            .fs-whatsapp a:hover {
+                border-color: rgba(0, 240, 255, 0.35);
+                background: var(--fs-cyan-soft);
+                color: var(--fs-cyan);
+            }
 
-    .fs-service-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient( to top, rgba(5,10,18,0.96), rgba(5,10,18,0.25) 70% );
+    /* =========================================================
+           CONTACT
+           ========================================================= */
+
+    .fs-contact-grid {
+        display: grid;
+        grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
+        gap: 20px;
+        align-items: stretch;
     }
-
-    .fs-service-content {
-        position: absolute;
-        left: 24px;
-        right: 24px;
-        bottom: 22px;
-    }
-
-    .fs-service-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--fs-cyan);
-        background: rgba(0,240,255,0.12);
-        border: 1px solid rgba(0,240,255,0.2);
-        margin-bottom: 14px;
-    }
-
-    .fs-service-content h4 {
-        font-weight: 750;
-        margin-bottom: 7px;
-    }
-
-    .fs-service-content p {
-        color: #aeb9c8;
-        font-size: 0.88rem;
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    /* TECHNOLOGY STRIP */
-
-    .fs-tech-box {
-        padding: 38px;
-        border-radius: 24px;
-        border: 1px solid rgba(0,240,255,0.16);
-        background: radial-gradient(circle at right top, rgba(0,240,255,0.08), transparent 35%), rgba(255,255,255,0.025);
-    }
-
-    .fs-tech-item {
-        display: flex;
-        align-items: center;
-        gap: 13px;
-        padding: 15px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
-
-        .fs-tech-item:last-child {
-            border-bottom: none;
-        }
-
-        .fs-tech-item i {
-            color: var(--fs-cyan);
-            font-size: 1.2rem;
-        }
-
-        .fs-tech-item span {
-            color: #c7d1de;
-        }
-
-    /* CONTACT */
 
     .fs-contact-card {
         height: 100%;
-        padding: 34px;
-        border-radius: 24px;
-        background: rgba(255,255,255,0.035);
+        padding: 27px;
         border: 1px solid var(--fs-border);
+        border-radius: var(--fs-radius);
+        background: rgba(17, 27, 43, 0.68);
     }
+
+        .fs-contact-card h3 {
+            margin: 0 0 24px;
+            color: #ffffff;
+            font-size: 1.25rem;
+        }
 
     .fs-contact-item {
         display: flex;
-        gap: 15px;
-        margin-bottom: 25px;
+        align-items: flex-start;
+        gap: 13px;
+        padding: 13px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .fs-contact-icon {
-        flex: 0 0 44px;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        background: var(--fs-cyan-soft);
-        color: var(--fs-cyan);
-    }
+        .fs-contact-item:last-of-type {
+            border-bottom: 0;
+        }
 
-    .fs-contact-item strong {
-        display: block;
-        margin-bottom: 4px;
-    }
+        .fs-contact-item i {
+            flex: 0 0 auto;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: var(--fs-cyan-soft);
+            color: var(--fs-cyan);
+        }
 
-    .fs-contact-item span {
-        color: var(--fs-muted);
-        font-size: 0.9rem;
+        .fs-contact-item strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #ffffff;
+            font-size: 0.88rem;
+        }
+
+        .fs-contact-item p {
+            margin: 0;
+            color: var(--fs-muted);
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+
+    .fs-login-contact {
+        margin-top: 20px;
     }
 
     .fs-map {
-        min-height: 470px;
-        height: 100%;
+        min-height: 420px;
         overflow: hidden;
-        border-radius: 24px;
         border: 1px solid var(--fs-border);
-        background: #111a29;
+        border-radius: var(--fs-radius);
+        background: #111b2b;
     }
 
         .fs-map iframe {
             width: 100%;
             height: 100%;
-            min-height: 470px;
+            min-height: 420px;
+            display: block;
             border: 0;
-            filter: grayscale(0.2) contrast(1.05);
         }
 
-    /* FINAL CTA */
+    /* =========================================================
+           FINAL CTA
+           ========================================================= */
 
     .fs-final-cta {
-        padding: 80px 0;
-        background: radial-gradient(circle at center, rgba(0,240,255,0.11), transparent 50%), #0a101d;
+        padding: 60px 0;
+        background: radial-gradient(circle at center, rgba(0, 240, 255, 0.10), transparent 48%), var(--fs-bg);
     }
 
-    .fs-final-box {
-        padding: 55px 35px;
+    .fs-cta-box {
+        position: relative;
+        overflow: hidden;
+        padding: 48px 35px;
         text-align: center;
-        border-radius: 28px;
-        border: 1px solid rgba(0,240,255,0.16);
-        background: rgba(255,255,255,0.025);
+        border: 1px solid var(--fs-border-cyan);
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(0, 240, 255, 0.07), rgba(17, 27, 43, 0.76));
     }
 
-        .fs-final-box h2 {
-            font-weight: 800;
-            font-size: clamp(2rem, 4vw, 3rem);
-            margin-bottom: 14px;
+        .fs-cta-box h2 {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 900;
         }
 
-        .fs-final-box p {
-            color: var(--fs-muted);
+        .fs-cta-box p {
             max-width: 650px;
-            margin: 0 auto 27px;
+            margin: 13px auto 25px;
+            color: var(--fs-muted);
+            line-height: 1.7;
         }
 
-    /* FOOTER */
+    .fs-cta-buttons {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    /* =========================================================
+           FOOTER
+           ========================================================= */
 
     .fs-footer {
-        padding: 35px 0;
-        border-top: 1px solid rgba(255,255,255,0.07);
-        background: #080d16;
+        padding: 26px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        background: #070c15;
     }
 
-    .fs-footer-text {
-        color: #718096;
-        font-size: 0.85rem;
-        margin: 0;
+    .fs-footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
     }
+
+    .fs-footer-brand {
+        color: #ffffff;
+        font-weight: 900;
+        text-decoration: none;
+    }
+
+        .fs-footer-brand span {
+            color: var(--fs-cyan);
+        }
+
+    .fs-footer p {
+        margin: 0;
+        color: #748195;
+        font-size: 0.8rem;
+    }
+
+    /* =========================================================
+           RESPONSIVE - LAPTOP
+           ========================================================= */
+
+    @@media (max-width: 1100px) {
+
+        .fs-container {
+            width: min(100% - 32px, 1000px);
+        }
+
+        .fs-hero-grid {
+            grid-template-columns: 1fr 0.9fr;
+            gap: 32px;
+        }
+
+        .fs-hero-title {
+            font-size: clamp(2.35rem, 5vw, 3.7rem);
+        }
+
+        .fs-service-grid,
+        .fs-specialists,
+        .fs-facility-grid {
+            gap: 15px;
+        }
+    }
+
+    /* =========================================================
+           RESPONSIVE - TABLET
+           ========================================================= */
 
     @@media (max-width: 991px) {
+
+        .fs-section {
+            padding: 58px 0;
+        }
+
         .fs-hero {
-            padding: 100px 0 80px;
+            padding: 45px 0 55px;
         }
 
-        .fs-image-card {
-            margin-top: 45px;
+        .fs-hero-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
         }
 
-        .fs-benefits {
-            margin-top: 0;
-            padding-top: 35px;
+        .fs-hero-content {
+            max-width: 760px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .fs-hero-text {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .fs-hero-buttons {
+            justify-content: center;
+        }
+
+        .fs-hero-visual {
+            width: min(720px, 100%);
+            margin: 0 auto;
+        }
+
+        .fs-hero-image {
+            min-height: 0;
+        }
+
+        .fs-benefits,
+        .fs-service-grid,
+        .fs-facility-grid,
+        .fs-specialists {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .fs-contact-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .fs-map,
+        .fs-map iframe {
+            min-height: 360px;
         }
     }
 
-    @@media (max-width: 576px) {
+    /* =========================================================
+           RESPONSIVE - MOBILE GRANDE
+           ========================================================= */
+
+    @@media (max-width: 767px) {
+
+        .fs-container {
+            width: min(100% - 26px, 620px);
+        }
+
         .fs-section {
-            padding: 75px 0;
+            padding: 48px 0;
         }
 
-        .fs-hero h1 {
-            letter-spacing: -1.8px;
+        .fs-section-heading {
+            margin-bottom: 30px;
         }
 
-        .fs-image-card,
-        .fs-image-card img {
-            min-height: 420px;
-            height: 420px;
+            .fs-section-heading h2 {
+                font-size: 1.9rem;
+            }
+
+            .fs-section-heading p {
+                font-size: 0.9rem;
+            }
+
+        .fs-hero {
+            padding: 32px 0 45px;
         }
 
-        .fs-trust {
+        .fs-hero-title {
+            margin-top: 15px;
+            font-size: clamp(2.25rem, 11vw, 3.2rem);
+        }
+
+        .fs-hero-text {
+            font-size: 0.94rem;
+            line-height: 1.65;
+        }
+
+        .fs-hero-buttons {
+            margin-top: 22px;
+        }
+
+        .fs-btn {
+            min-height: 46px;
+            padding: 10px 17px;
+            font-size: 0.86rem;
+        }
+
+        .fs-hero-stats {
+            gap: 7px;
+        }
+
+        .fs-stat {
+            padding: 11px 6px;
+        }
+
+            .fs-stat strong {
+                font-size: 1rem;
+            }
+
+            .fs-stat span {
+                font-size: 0.62rem;
+            }
+
+        .fs-benefits,
+        .fs-service-grid,
+        .fs-facility-grid,
+        .fs-specialists {
+            grid-template-columns: 1fr;
+        }
+
+        .fs-specialist-content {
+            min-height: auto;
+        }
+
+        .fs-map,
+        .fs-map iframe {
+            min-height: 320px;
+        }
+
+        .fs-cta-box {
+            padding: 35px 20px;
+        }
+
+        .fs-footer-inner {
             flex-direction: column;
-            gap: 12px;
+            text-align: center;
         }
+    }
+
+    /* =========================================================
+           RESPONSIVE - MOBILE PEQUEÑO
+           ========================================================= */
+
+    @@media (max-width: 575px) {
+
+        .fs-container {
+            width: calc(100% - 22px);
+        }
+
+        .fs-hero-title {
+            font-size: 2.25rem;
+        }
+
+        .fs-hero-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .fs-btn {
+            width: 100%;
+        }
+
+        .fs-hero-image {
+            aspect-ratio: 4 / 3;
+            border-radius: 18px;
+        }
+
+        .fs-hero-overlay {
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            padding: 13px;
+        }
+
+            .fs-hero-overlay strong {
+                font-size: 0.88rem;
+            }
+
+            .fs-hero-overlay span {
+                font-size: 0.76rem;
+            }
+
+        .fs-contact-card {
+            padding: 21px;
+        }
+
+        .fs-contact-item {
+            gap: 10px;
+        }
+
+        .fs-map,
+        .fs-map iframe {
+            min-height: 280px;
+        }
+
+        .fs-final-cta {
+            padding: 45px 0;
+        }
+
+        .fs-cta-buttons {
+            flex-direction: column;
+        }
+
+            .fs-cta-buttons .fs-btn {
+                width: 100%;
+            }
     }
 </style>
-
-<!-- =========================================================
-     NAVBAR
-     ========================================================= -->
-
-<nav class="navbar navbar-expand-lg fixed-top fs-navbar">
-    <div class="container py-2">
-
-        <a class="fs-brand" asp-controller="Home" asp-action="Index">
-            Fisio<span>Sport</span>
-        </a>
-
-        <button class="navbar-toggler border-0 shadow-none"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#fsNavbar">
-            <i class="bi bi-list text-white fs-2"></i>
-        </button>
-
-        <div class="collapse navbar-collapse" id="fsNavbar">
-
-            <ul class="navbar-nav mx-auto gap-lg-2">
-
-                <li class="nav-item">
-                    <a class="nav-link fs-nav-link" href="#inicio">
-                        Inicio
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link fs-nav-link" href="#especialistas">
-                        Especialistas
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link fs-nav-link" href="#servicios">
-                        Servicios
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link fs-nav-link" href="#contacto">
-                        Contacto
-                    </a>
-                </li>
-
-            </ul>
-
-            <a class="btn btn-fs-primary"
-               asp-controller="Account"
-               asp-action="Login">
-                <i class="bi bi-box-arrow-in-right me-1"></i>
-                Iniciar Sesión
-            </a>
-
-        </div>
-    </div>
-</nav>
 
 
 <!-- =========================================================
      HERO
      ========================================================= -->
 
-<section id="inicio" class="fs-hero">
+<section class="fs-hero">
 
-    <div class="container position-relative">
+    <div class="fs-container">
 
-        <div class="row align-items-center g-5">
+        <div class="fs-hero-grid">
 
-            <div class="col-lg-6">
+            <div class="fs-hero-content">
 
-                <div class="fs-hero-content">
+                <span class="fs-hero-badge">
+                    <i class="bi bi-heart-pulse"></i>
+                    Fisioterapia y rehabilitación integral
+                </span>
 
-                    <div class="fs-badge">
-                        <i class="bi bi-shield-check"></i>
-                        Fisioterapia y rehabilitación especializada
-                    </div>
+                <h1 class="fs-hero-title">
+                    Recupera tu movimiento,
+                    <span>recupera tu bienestar.</span>
+                </h1>
 
-                    <h1>
-                        Recupera tu
-                        <span>movimiento.</span>
-                        Recupera tu vida.
-                    </h1>
+                <p class="fs-hero-text">
+                    En FisioSport te acompañamos durante todo tu proceso
+                    de recuperación con tratamientos personalizados,
+                    tecnología y profesionales especializados.
+                </p>
 
-                    <p class="fs-hero-description">
-                        Tratamientos personalizados, seguimiento clínico
-                        y rehabilitación física orientada a tus objetivos,
-                        con un enfoque profesional y humano.
-                    </p>
+                <div class="fs-hero-buttons">
 
-                    <div class="fs-hero-actions">
+                    <a asp-controller="Account"
+                       asp-action="Login"
+                       class="fs-btn fs-btn-primary">
 
-                        <a href="#especialistas"
-                           class="btn btn-fs-primary btn-lg">
-                            <i class="bi bi-calendar2-check me-2"></i>
-                            Agendar Cita
-                        </a>
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Iniciar Sesión
 
-                        <a asp-controller="Account"
-                           asp-action="Login"
-                           class="btn btn-fs-outline btn-lg">
-                            <i class="bi bi-person-circle me-2"></i>
-                            Iniciar Sesión
-                        </a>
+                    </a>
 
-                    </div>
+                    <a href="#especialistas"
+                       class="fs-btn fs-btn-outline">
 
-                    <div class="fs-trust">
+                        <i class="bi bi-calendar2-check"></i>
+                        Agendar Cita
 
-                        <div class="fs-trust-item">
-                            <i class="bi bi-patch-check-fill"></i>
-                            <span>Evaluación especializada</span>
-                        </div>
-
-                        <div class="fs-trust-item">
-                            <i class="bi bi-clipboard2-pulse"></i>
-                            <span>Seguimiento clínico</span>
-                        </div>
-
-                        <div class="fs-trust-item">
-                            <i class="bi bi-heart-pulse-fill"></i>
-                            <span>Atención personalizada</span>
-                        </div>
-
-                    </div>
+                    </a>
 
                 </div>
 
             </div>
 
 
-            <div class="col-lg-6">
+            <div class="fs-hero-visual">
 
-                <div class="fs-hero-visual">
+                <div class="fs-hero-image">
 
-                    <div class="fs-image-card">
+                    <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=85"
+                         alt="Atención profesional de fisioterapia"
+                         loading="eager" />
 
-                        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=85"
-                             alt="Profesional de fisioterapia atendiendo a un paciente">
+                    <div class="fs-hero-overlay">
 
-                        <div class="fs-image-overlay"></div>
+                        <strong>
+                            Tu recuperación es nuestra prioridad
+                        </strong>
 
-                        <div class="fs-floating-card">
+                        <span>
+                            Atención profesional, seguimiento y rehabilitación personalizada.
+                        </span>
 
-                            <div class="fs-floating-card-title">
-                                <i class="bi bi-activity"></i>
-                                Rehabilitación basada en objetivos
-                            </div>
+                    </div>
 
-                            <p>
-                                Evaluamos tu evolución y adaptamos el
-                                tratamiento a cada etapa de tu recuperación.
-                            </p>
+                </div>
 
-                        </div>
+                <div class="fs-hero-stats">
 
+                    <div class="fs-stat">
+                        <strong>+10</strong>
+                        <span>Especialistas</span>
+                    </div>
+
+                    <div class="fs-stat">
+                        <strong>+500</strong>
+                        <span>Pacientes</span>
+                    </div>
+
+                    <div class="fs-stat">
+                        <strong>100%</strong>
+                        <span>Personalizado</span>
                     </div>
 
                 </div>
@@ -811,238 +1061,82 @@
 
 
 <!-- =========================================================
-     BENEFICIOS
+     NOSOTROS / BENEFICIOS
      ========================================================= -->
 
-<section class="fs-benefits">
+<section id="nosotros" class="fs-section fs-section-soft">
 
-    <div class="container">
+    <div class="fs-container">
 
-        <div class="row g-3">
+        <div class="fs-section-heading">
 
-            <div class="col-md-4">
-
-                <div class="fs-benefit-card">
-
-                    <div class="fs-benefit-icon">
-                        <i class="bi bi-person-badge"></i>
-                    </div>
-
-                    <h5>Evaluación Especializada</h5>
-
-                    <p>
-                        Valoración individual para conocer tus necesidades
-                        y objetivos de recuperación.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-md-4">
-
-                <div class="fs-benefit-card">
-
-                    <div class="fs-benefit-icon">
-                        <i class="bi bi-clipboard2-heart"></i>
-                    </div>
-
-                    <h5>Tratamientos Personalizados</h5>
-
-                    <p>
-                        Planes de rehabilitación adaptados a tu evolución
-                        y características particulares.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="col-md-4">
-
-                <div class="fs-benefit-card">
-
-                    <div class="fs-benefit-icon">
-                        <i class="bi bi-cpu"></i>
-                    </div>
-
-                    <h5>Equipamiento Moderno</h5>
-
-                    <p>
-                        Espacios y recursos orientados a una rehabilitación
-                        funcional y progresiva.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- =========================================================
-     ESPECIALISTAS
-     ========================================================= -->
-
-<section id="especialistas" class="fs-section">
-
-    <div class="container">
-
-        <div class="fs-section-header">
-
-            <div class="fs-section-label">
-                Nuestro equipo
-            </div>
+            <span>CONÓCENOS</span>
 
             <h2>
-                Profesionales que acompañan tu recuperación
+                Un centro pensado para tu recuperación
             </h2>
 
             <p>
-                Conoce a nuestros especialistas y encuentra el área
-                de atención que necesitas.
+                FisioSport combina experiencia profesional, atención humana
+                y herramientas modernas para ofrecer una rehabilitación
+                segura y efectiva.
             </p>
 
         </div>
 
 
-        <div class="row g-4">
+        <div class="fs-benefits">
 
+            <div class="fs-info-card">
 
-            <!-- ESPECIALISTA 1 -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="fs-specialist-card">
-
-                    <div class="fs-specialist-photo">
-
-                        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=85"
-                             alt="Especialista en fisioterapia">
-
-                    </div>
-
-                    <div class="fs-specialist-body">
-
-                        <h4>
-                            Dra. Ana Rojas
-                        </h4>
-
-                        <div class="fs-specialty">
-                            Fisioterapia Deportiva
-                        </div>
-
-                        <div class="fs-license">
-                            Colegiado: COL-4521
-                        </div>
-
-                        <a href="https://wa.me/0000000000"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="fs-whatsapp">
-
-                            <i class="bi bi-whatsapp"></i>
-                            Contactar por WhatsApp
-
-                        </a>
-
-                    </div>
-
+                <div class="fs-icon">
+                    <i class="bi bi-person-heart"></i>
                 </div>
+
+                <h3>
+                    Atención personalizada
+                </h3>
+
+                <p>
+                    Cada paciente recibe un tratamiento adaptado a sus
+                    necesidades, objetivos y evolución.
+                </p>
 
             </div>
 
 
-            <!-- ESPECIALISTA 2 -->
+            <div class="fs-info-card">
 
-            <div class="col-md-6 col-lg-4">
-
-                <div class="fs-specialist-card">
-
-                    <div class="fs-specialist-photo">
-
-                        <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=800&q=85"
-                             alt="Profesional médico">
-
-                    </div>
-
-                    <div class="fs-specialist-body">
-
-                        <h4>
-                            Lic. Carlos Mendoza
-                        </h4>
-
-                        <div class="fs-specialty">
-                            Rehabilitación Neurológica
-                        </div>
-
-                        <div class="fs-license">
-                            Colegiado: COL-7789
-                        </div>
-
-                        <a href="https://wa.me/0000000000"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="fs-whatsapp">
-
-                            <i class="bi bi-whatsapp"></i>
-                            Contactar por WhatsApp
-
-                        </a>
-
-                    </div>
-
+                <div class="fs-icon">
+                    <i class="bi bi-activity"></i>
                 </div>
+
+                <h3>
+                    Rehabilitación integral
+                </h3>
+
+                <p>
+                    Trabajamos movilidad, fuerza, estabilidad, prevención
+                    de lesiones y recuperación funcional.
+                </p>
 
             </div>
 
 
-            <!-- ESPECIALISTA 3 -->
+            <div class="fs-info-card">
 
-            <div class="col-md-6 col-lg-4">
-
-                <div class="fs-specialist-card">
-
-                    <div class="fs-specialist-photo">
-
-                        <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=800&q=85"
-                             alt="Especialista sanitario">
-
-                    </div>
-
-                    <div class="fs-specialist-body">
-
-                        <h4>
-                            Dr. Mario Sánchez
-                        </h4>
-
-                        <div class="fs-specialty">
-                            Terapia del Dolor
-                        </div>
-
-                        <div class="fs-license">
-                            Colegiado: COL-9134
-                        </div>
-
-                        <a href="https://wa.me/0000000000"
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           class="fs-whatsapp">
-
-                            <i class="bi bi-whatsapp"></i>
-                            Contactar por WhatsApp
-
-                        </a>
-
-                    </div>
-
+                <div class="fs-icon">
+                    <i class="bi bi-shield-check"></i>
                 </div>
+
+                <h3>
+                    Profesionales especializados
+                </h3>
+
+                <p>
+                    Nuestro equipo te acompaña con seguimiento constante
+                    durante todo el tratamiento.
+                </p>
 
             </div>
 
@@ -1057,227 +1151,207 @@
      SERVICIOS
      ========================================================= -->
 
-<section id="servicios" class="fs-section fs-section-soft">
+<section id="servicios" class="fs-section fs-section-dark">
 
-    <div class="container">
+    <div class="fs-container">
 
-        <div class="fs-section-header">
+        <div class="fs-section-heading">
 
-            <div class="fs-section-label">
-                Servicios e instalaciones
-            </div>
+            <span>NUESTROS SERVICIOS</span>
 
             <h2>
-                Un entorno diseñado para tu recuperación
+                Tratamientos para diferentes necesidades
             </h2>
 
             <p>
-                Combinamos diferentes técnicas y espacios de rehabilitación
-                para acompañar cada etapa de tu tratamiento.
+                Diseñamos planes de rehabilitación según la condición,
+                objetivos y evolución de cada paciente.
             </p>
 
         </div>
 
 
-        <div class="row g-4">
+        <div class="fs-service-grid">
 
 
-            <!-- TERAPIA MANUAL -->
+            <article class="fs-service-card">
 
-            <div class="col-md-6 col-lg-4">
+                <div class="fs-service-image">
 
-                <div class="fs-service-card">
-
-                    <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1000&q=85"
-                         alt="Terapia manual">
-
-                    <div class="fs-service-overlay"></div>
-
-                    <div class="fs-service-content">
-
-                        <div class="fs-service-icon">
-                            <i class="bi bi-person-arms-up"></i>
-                        </div>
-
-                        <h4>
-                            Terapia Manual
-                        </h4>
-
-                        <p>
-                            Técnicas orientadas a mejorar movilidad,
-                            función y bienestar físico.
-                        </p>
-
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=900&q=80"
+                         alt="Terapia manual"
+                         loading="lazy" />
 
                 </div>
 
-            </div>
+                <div class="fs-service-content">
 
-
-            <!-- ELECTROTERAPIA -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="fs-service-card">
-
-                    <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1000&q=85"
-                         alt="Equipamiento de fisioterapia">
-
-                    <div class="fs-service-overlay"></div>
-
-                    <div class="fs-service-content">
-
-                        <div class="fs-service-icon">
-                            <i class="bi bi-lightning-charge"></i>
-                        </div>
-
-                        <h4>
-                            Electroterapia
-                        </h4>
-
-                        <p>
-                            Recursos terapéuticos utilizados como parte
-                            de determinados planes de rehabilitación.
-                        </p>
-
+                    <div class="fs-service-icon">
+                        <i class="bi bi-hand-index-thumb"></i>
                     </div>
+
+                    <h3>
+                        Terapia Manual
+                    </h3>
+
+                    <p>
+                        Técnicas manuales orientadas a mejorar movilidad,
+                        reducir molestias y favorecer la recuperación.
+                    </p>
 
                 </div>
 
-            </div>
+            </article>
 
 
-            <!-- GIMNASIO -->
+            <article class="fs-service-card">
 
-            <div class="col-md-6 col-lg-4">
+                <div class="fs-service-image">
 
-                <div class="fs-service-card">
-
-                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=85"
-                         alt="Gimnasio de rehabilitación">
-
-                    <div class="fs-service-overlay"></div>
-
-                    <div class="fs-service-content">
-
-                        <div class="fs-service-icon">
-                            <i class="bi bi-activity"></i>
-                        </div>
-
-                        <h4>
-                            Gimnasio de Rehabilitación
-                        </h4>
-
-                        <p>
-                            Ejercicios progresivos para recuperar fuerza,
-                            movilidad, estabilidad y función.
-                        </p>
-
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80"
+                         alt="Electroterapia"
+                         loading="lazy" />
 
                 </div>
 
-            </div>
+                <div class="fs-service-content">
 
-
-            <!-- REHABILITACIÓN DEPORTIVA -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="fs-service-card">
-
-                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1000&q=85"
-                         alt="Rehabilitación deportiva">
-
-                    <div class="fs-service-overlay"></div>
-
-                    <div class="fs-service-content">
-
-                        <div class="fs-service-icon">
-                            <i class="bi bi-person-walking"></i>
-                        </div>
-
-                        <h4>
-                            Rehabilitación Deportiva
-                        </h4>
-
-                        <p>
-                            Recuperación progresiva después de lesiones
-                            deportivas y musculoesqueléticas.
-                        </p>
-
+                    <div class="fs-service-icon">
+                        <i class="bi bi-lightning-charge"></i>
                     </div>
+
+                    <h3>
+                        Electroterapia
+                    </h3>
+
+                    <p>
+                        Apoyo terapéutico mediante tecnología aplicada
+                        según las necesidades de cada paciente.
+                    </p>
 
                 </div>
 
-            </div>
+            </article>
 
 
-            <!-- MOVILIDAD -->
+            <article class="fs-service-card">
 
-            <div class="col-md-6 col-lg-4">
+                <div class="fs-service-image">
 
-                <div class="fs-service-card">
-
-                    <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1000&q=85"
-                         alt="Ejercicios de movilidad">
-
-                    <div class="fs-service-overlay"></div>
-
-                    <div class="fs-service-content">
-
-                        <div class="fs-service-icon">
-                            <i class="bi bi-universal-access"></i>
-                        </div>
-
-                        <h4>
-                            Movilidad y Función
-                        </h4>
-
-                        <p>
-                            Trabajo progresivo para recuperar autonomía
-                            y movimiento funcional.
-                        </p>
-
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80"
+                         alt="Gimnasio de rehabilitación"
+                         loading="lazy" />
 
                 </div>
 
-            </div>
+                <div class="fs-service-content">
 
-
-            <!-- EJERCICIO TERAPÉUTICO -->
-
-            <div class="col-md-6 col-lg-4">
-
-                <div class="fs-service-card">
-
-                    <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=1000&q=85"
-                         alt="Ejercicio terapéutico">
-
-                    <div class="fs-service-overlay"></div>
-
-                    <div class="fs-service-content">
-
-                        <div class="fs-service-icon">
-                            <i class="bi bi-heart-pulse"></i>
-                        </div>
-
-                        <h4>
-                            Ejercicio Terapéutico
-                        </h4>
-
-                        <p>
-                            Rutinas adaptadas para reforzar los objetivos
-                            definidos durante la rehabilitación.
-                        </p>
-
+                    <div class="fs-service-icon">
+                        <i class="bi bi-person-arms-up"></i>
                     </div>
+
+                    <h3>
+                        Gimnasio de Rehabilitación
+                    </h3>
+
+                    <p>
+                        Espacio para desarrollar fuerza, movilidad,
+                        estabilidad y recuperación funcional.
+                    </p>
 
                 </div>
 
-            </div>
+            </article>
+
+
+            <article class="fs-service-card">
+
+                <div class="fs-service-image">
+
+                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=80"
+                         alt="Rehabilitación deportiva"
+                         loading="lazy" />
+
+                </div>
+
+                <div class="fs-service-content">
+
+                    <div class="fs-service-icon">
+                        <i class="bi bi-person-walking"></i>
+                    </div>
+
+                    <h3>
+                        Rehabilitación Deportiva
+                    </h3>
+
+                    <p>
+                        Recuperación progresiva de lesiones deportivas
+                        y retorno seguro a la actividad física.
+                    </p>
+
+                </div>
+
+            </article>
+
+
+            <article class="fs-service-card">
+
+                <div class="fs-service-image">
+
+                    <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80"
+                         alt="Movilidad y función"
+                         loading="lazy" />
+
+                </div>
+
+                <div class="fs-service-content">
+
+                    <div class="fs-service-icon">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+
+                    <h3>
+                        Movilidad y Función
+                    </h3>
+
+                    <p>
+                        Trabajo específico para recuperar movimiento,
+                        autonomía y capacidad funcional.
+                    </p>
+
+                </div>
+
+            </article>
+
+
+            <article class="fs-service-card">
+
+                <div class="fs-service-image">
+
+                    <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=900&q=80"
+                         alt="Ejercicio terapéutico"
+                         loading="lazy" />
+
+                </div>
+
+                <div class="fs-service-content">
+
+                    <div class="fs-service-icon">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+
+                    <h3>
+                        Ejercicio Terapéutico
+                    </h3>
+
+                    <p>
+                        Ejercicios personalizados para continuar y reforzar
+                        el proceso de recuperación.
+                    </p>
+
+                </div>
+
+            </article>
 
         </div>
 
@@ -1287,68 +1361,94 @@
 
 
 <!-- =========================================================
-     ENFOQUE TECNOLÓGICO
+     INSTALACIONES
      ========================================================= -->
 
-<section class="fs-section">
+<section id="instalaciones" class="fs-section fs-section-soft">
 
-    <div class="container">
+    <div class="fs-container">
 
-        <div class="row align-items-center g-5">
+        <div class="fs-section-heading">
 
-            <div class="col-lg-6">
+            <span>NUESTRAS INSTALACIONES</span>
 
-                <div class="fs-section-label">
-                    Seguimiento integral
+            <h2>
+                Un espacio preparado para tu recuperación
+            </h2>
+
+            <p>
+                Contamos con espacios cómodos y funcionales para realizar
+                evaluaciones, terapias y ejercicios de rehabilitación.
+            </p>
+
+        </div>
+
+
+        <div class="fs-facility-grid">
+
+
+            <article class="fs-facility-card">
+
+                <div class="fs-facility-image">
+
+                    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=900&q=80"
+                         alt="Consultorio de fisioterapia"
+                         loading="lazy" />
+
                 </div>
 
-                <h2 class="fw-bold display-5 mb-4">
-                    Tu tratamiento, acompañado en cada etapa
-                </h2>
+                <h3>
+                    Consultorios
+                </h3>
 
-                <p class="text-secondary fs-5 lh-lg">
-
-                    FisioSport integra la atención clínica con herramientas
-                    digitales para facilitar el seguimiento de las sesiones,
-                    ejercicios y evolución del paciente.
-
+                <p>
+                    Espacios privados para evaluación y seguimiento clínico.
                 </p>
 
-            </div>
+            </article>
 
 
-            <div class="col-lg-6">
+            <article class="fs-facility-card">
 
-                <div class="fs-tech-box">
+                <div class="fs-facility-image">
 
-                    <div class="fs-tech-item">
-                        <i class="bi bi-clipboard2-pulse"></i>
-                        <span>Historia clínica y evaluación</span>
-                    </div>
-
-                    <div class="fs-tech-item">
-                        <i class="bi bi-calendar2-check"></i>
-                        <span>Gestión y seguimiento de citas</span>
-                    </div>
-
-                    <div class="fs-tech-item">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        <span>Progreso del tratamiento</span>
-                    </div>
-
-                    <div class="fs-tech-item">
-                        <i class="bi bi-person-check"></i>
-                        <span>Registro de sesiones completadas</span>
-                    </div>
-
-                    <div class="fs-tech-item">
-                        <i class="bi bi-play-btn"></i>
-                        <span>Ejercicios personalizados para casa</span>
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80"
+                         alt="Área de rehabilitación"
+                         loading="lazy" />
 
                 </div>
 
-            </div>
+                <h3>
+                    Área de rehabilitación
+                </h3>
+
+                <p>
+                    Zona equipada para ejercicios de movilidad y fuerza.
+                </p>
+
+            </article>
+
+
+            <article class="fs-facility-card">
+
+                <div class="fs-facility-image">
+
+                    <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=900&q=80"
+                         alt="Zona de recuperación"
+                         loading="lazy" />
+
+                </div>
+
+                <h3>
+                    Zona de recuperación
+                </h3>
+
+                <p>
+                    Ambiente diseñado para terapias y recuperación funcional.
+                </p>
+
+            </article>
+
 
         </div>
 
@@ -1358,123 +1458,303 @@
 
 
 <!-- =========================================================
-     CONTACTO / UBICACIÓN
+     ESPECIALISTAS
+     ========================================================= -->
+
+<section id="especialistas" class="fs-section fs-section-dark">
+
+    <div class="fs-container">
+
+        <div class="fs-section-heading">
+
+            <span>NUESTRO EQUIPO</span>
+
+            <h2>
+                Especialistas que te acompañan
+            </h2>
+
+            <p>
+                Conoce a nuestro equipo de fisioterapeutas.
+            </p>
+
+        </div>
+
+
+        <div class="fs-specialists">
+
+
+            <!-- ANA -->
+
+            <article class="fs-specialist-card">
+
+                <div class="fs-specialist-photo">
+
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=900&q=85"
+                         alt="Ana López - Fisioterapia deportiva"
+                         loading="lazy" />
+
+                </div>
+
+                <div class="fs-specialist-content">
+
+                    <h3>
+                        Ana López
+                    </h3>
+
+                    <p class="fs-specialty">
+                        Fisioterapia deportiva
+                    </p>
+
+                    <p class="description">
+                        Especialista en recuperación muscular, movilidad
+                        y prevención de lesiones deportivas.
+                    </p>
+
+                    <div class="fs-collegiado">
+                        <strong>Colegiado:</strong> COL-4521
+                    </div>
+
+                    <div class="fs-whatsapp">
+
+                        <a href="https://wa.me/74158669"
+                           target="_blank"
+                           rel="noopener noreferrer">
+
+                            <i class="bi bi-whatsapp"></i>
+                            Contactar por WhatsApp
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- CARLOS -->
+
+            <article class="fs-specialist-card">
+
+                <div class="fs-specialist-photo">
+
+                    <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=900&q=85"
+                         alt="Carlos Martínez - Rehabilitación funcional"
+                         loading="lazy" />
+
+                </div>
+
+                <div class="fs-specialist-content">
+
+                    <h3>
+                        Carlos Martínez
+                    </h3>
+
+                    <p class="fs-specialty">
+                        Rehabilitación funcional
+                    </p>
+
+                    <p class="description">
+                        Enfocado en recuperación de movilidad, fuerza
+                        y autonomía funcional.
+                    </p>
+
+                    <div class="fs-collegiado">
+                        <strong>Colegiado:</strong> COL-7789
+                    </div>
+
+                    <div class="fs-whatsapp">
+
+                        <a href="https://wa.me/74158669"
+                           target="_blank"
+                           rel="noopener noreferrer">
+
+                            <i class="bi bi-whatsapp"></i>
+                            Contactar por WhatsApp
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- MARIO -->
+
+            <article class="fs-specialist-card">
+
+                <div class="fs-specialist-photo">
+
+                    <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=900&q=85"
+                         alt="Mario Sánchez - Terapia del dolor"
+                         loading="lazy" />
+
+                </div>
+
+                <div class="fs-specialist-content">
+
+                    <h3>
+                        Mario Sánchez
+                    </h3>
+
+                    <p class="fs-specialty">
+                        Terapia del dolor
+                    </p>
+
+                    <p class="description">
+                        Atención especializada para molestias musculares,
+                        articulares y recuperación postural.
+                    </p>
+
+                    <div class="fs-collegiado">
+                        <strong>Colegiado:</strong> COL-9134
+                    </div>
+
+                    <div class="fs-whatsapp">
+
+                        <a href="https://wa.me/74158669"
+                           target="_blank"
+                           rel="noopener noreferrer">
+
+                            <i class="bi bi-whatsapp"></i>
+                            Contactar por WhatsApp
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     CONTACTO
      ========================================================= -->
 
 <section id="contacto" class="fs-section fs-section-soft">
 
-    <div class="container">
+    <div class="fs-container">
 
-        <div class="fs-section-header">
+        <div class="fs-section-heading">
 
-            <div class="fs-section-label">
-                Encuéntranos
-            </div>
+            <span>ENCUÉNTRANOS</span>
 
             <h2>
-                Estamos aquí para acompañarte
+                Visítanos en FisioSport
             </h2>
 
             <p>
-                Contáctanos para conocer nuestros servicios y comenzar
-                tu proceso de recuperación.
+                Agenda tu cita y comienza tu proceso de recuperación.
             </p>
 
         </div>
 
 
-        <div class="row g-4 align-items-stretch">
+        <div class="fs-contact-grid">
 
 
-            <div class="col-lg-5">
+            <!-- INFORMACIÓN -->
 
-                <div class="fs-contact-card">
+            <div class="fs-contact-card">
 
-                    <h3 class="fw-bold mb-4">
-                        Información de atención
-                    </h3>
-
-
-                    <div class="fs-contact-item">
-
-                        <div class="fs-contact-icon">
-                            <i class="bi bi-geo-alt"></i>
-                        </div>
-
-                        <div>
-                            <strong>Dirección</strong>
-                            <span>
-                                Próximamente: dirección del centro FisioSport
-                            </span>
-                        </div>
-
-                    </div>
+                <h3>
+                    Información de contacto
+                </h3>
 
 
-                    <div class="fs-contact-item">
+                <div class="fs-contact-item">
 
-                        <div class="fs-contact-icon">
-                            <i class="bi bi-telephone"></i>
-                        </div>
+                    <i class="bi bi-geo-alt"></i>
 
-                        <div>
-                            <strong>Teléfono</strong>
-                            <span>
-                                +00 000 000 000
-                            </span>
-                        </div>
+                    <div>
+
+                        <strong>
+                            Dirección
+                        </strong>
+
+                        <p>
+                            Coloca aquí la dirección real del centro.
+                        </p>
 
                     </div>
 
-
-                    <div class="fs-contact-item">
-
-                        <div class="fs-contact-icon">
-                            <i class="bi bi-envelope"></i>
-                        </div>
-
-                        <div>
-                            <strong>Correo electrónico</strong>
-                            <span>
-                                contacto@fisiosport.com
-                            </span>
-                        </div>
-
-                    </div>
+                </div>
 
 
-                    <div class="fs-contact-item">
+                <div class="fs-contact-item">
 
-                        <div class="fs-contact-icon">
-                            <i class="bi bi-clock"></i>
-                        </div>
+                    <i class="bi bi-telephone"></i>
 
-                        <div>
-                            <strong>Horario de atención</strong>
-                            <span>
-                                Lunes a viernes · 08:00 - 19:00
-                            </span>
-                        </div>
+                    <div>
+
+                        <strong>
+                            Teléfono
+                        </strong>
+
+                        <p>
+                            +00 000 000 0000
+                        </p>
 
                     </div>
 
+                </div>
 
-                    <a href="https://wa.me/0000000000"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="btn btn-fs-primary w-100 mt-2">
 
-                        <i class="bi bi-whatsapp me-2"></i>
-                        Consultar por WhatsApp
+                <div class="fs-contact-item">
 
-                    </a>
+                    <i class="bi bi-envelope"></i>
 
+                    <div>
+
+                        <strong>
+                            Correo
+                        </strong>
+
+                        <p>
+                            contacto@fisiosport.com
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="fs-contact-item">
+
+                    <i class="bi bi-clock"></i>
+
+                    <div>
+
+                        <strong>
+                            Horario
+                        </strong>
+
+                        <p>
+                            Lunes a viernes · 08:00 - 19:00
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="fs-login-contact">
 
                     <a asp-controller="Account"
                        asp-action="Login"
-                       class="btn btn-fs-outline w-100 mt-2">
+                       class="fs-btn fs-btn-primary w-100">
 
-                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        <i class="bi bi-box-arrow-in-right"></i>
                         Iniciar Sesión
 
                     </a>
@@ -1484,19 +1764,19 @@
             </div>
 
 
-            <div class="col-lg-7">
+            <!-- MAPA -->
 
-                <div class="fs-map">
+            <div class="fs-map">
 
-                    <iframe src="https://www.google.com/maps?q=Cochabamba,Bolivia&output=embed"
-                            loading="lazy"
-                            allowfullscreen=""
-                            referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-
-                </div>
+                <iframe src="https://www.google.com/maps?q=Cochabamba,Bolivia&output=embed"
+                        title="Ubicación de FisioSport en Google Maps"
+                        loading="lazy"
+                        allowfullscreen
+                        referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
 
             </div>
+
 
         </div>
 
@@ -1511,38 +1791,36 @@
 
 <section class="fs-final-cta">
 
-    <div class="container">
+    <div class="fs-container">
 
-        <div class="fs-final-box">
-
-            <div class="fs-section-label">
-                Da el siguiente paso
-            </div>
+        <div class="fs-cta-box">
 
             <h2>
                 Empieza a trabajar por tu recuperación
             </h2>
 
             <p>
-                Conoce a nuestros especialistas, agenda una consulta
-                y comienza un plan de rehabilitación adaptado a ti.
+                Conoce nuestros especialistas, solicita información
+                y comienza tu proceso de rehabilitación con FisioSport.
             </p>
 
-            <div class="d-flex flex-wrap justify-content-center gap-2">
+
+            <div class="fs-cta-buttons">
 
                 <a href="#especialistas"
-                   class="btn btn-fs-primary btn-lg">
+                   class="fs-btn fs-btn-primary">
 
-                    <i class="bi bi-calendar2-check me-2"></i>
+                    <i class="bi bi-calendar2-check"></i>
                     Agendar Cita
 
                 </a>
 
+
                 <a asp-controller="Account"
                    asp-action="Login"
-                   class="btn btn-fs-outline btn-lg">
+                   class="fs-btn fs-btn-outline">
 
-                    <i class="bi bi-person-circle me-2"></i>
+                    <i class="bi bi-box-arrow-in-right"></i>
                     Iniciar Sesión
 
                 </a>
@@ -1562,29 +1840,21 @@
 
 <footer class="fs-footer">
 
-    <div class="container">
+    <div class="fs-container">
 
-        <div class="row align-items-center g-3">
+        <div class="fs-footer-inner">
 
-            <div class="col-md-6">
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="fs-footer-brand">
 
-                <a class="fs-brand" asp-controller="Home" asp-action="Index">
-                    Fisio<span>Sport</span>
-                </a>
+                Fisio<span>Sport</span>
 
-                <p class="fs-footer-text mt-2">
-                    Fisioterapia y rehabilitación física.
-                </p>
+            </a>
 
-            </div>
-
-            <div class="col-md-6 text-md-end">
-
-                <p class="fs-footer-text">
-                    © @DateTime.Now.Year FisioSport. Todos los derechos reservados.
-                </p>
-
-            </div>
+            <p>
+                © @DateTime.Now.Year FisioSport. Todos los derechos reservados.
+            </p>
 
         </div>
 
