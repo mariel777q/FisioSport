@@ -17,7 +17,7 @@ namespace FISIOSPORT.Models
         public Fisioterapeuta? Fisioterapeuta { get; set; }
 
         [Required]
-        public DateTime Fecha { get; set; } = DateTime.Now;
+        public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
         [Required, MaxLength(3000)]
         public string Informe { get; set; } = string.Empty;

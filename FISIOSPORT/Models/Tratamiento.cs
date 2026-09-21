@@ -28,7 +28,7 @@ namespace FISIOSPORT.Models
         [Required]
         public int TotalSesiones { get; set; }
 
-        public DateTime FechaInicio { get; set; } = DateTime.Today;
+        public DateTime FechaInicio { get; set; } = DateTime.UtcNow.Date;
 
         [MaxLength(30)]
         public string Estado { get; set; } = "Activo";

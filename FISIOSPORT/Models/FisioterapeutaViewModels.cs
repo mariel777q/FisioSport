@@ -5,36 +5,48 @@ namespace FISIOSPORT.Models
     public class CitaCardViewModel
     {
         public int Id { get; set; }
+
         public string NombrePaciente { get; set; } = string.Empty;
+
         public DateTime Fecha { get; set; }
+
         public string Hora { get; set; } = string.Empty;
+
         public string Estado { get; set; } = string.Empty;
     }
 
     public class DashboardFisioViewModel
     {
         public string Nombre { get; set; } = string.Empty;
+
         public string Especialidad { get; set; } = string.Empty;
+
         public string NumeroColegiado { get; set; } = string.Empty;
+
         public List<CitaCardViewModel> Citas { get; set; } = new();
     }
 
     public class CrearCitaViewModel
     {
-        [Required(ErrorMessage = "Selecciona un paciente")]
+        [Required(ErrorMessage = "Selecciona un paciente.")]
         public int PacienteId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La fecha es obligatoria.")]
         [DataType(DataType.Date)]
         public DateTime Fecha { get; set; } = DateTime.Today;
 
-        [Required(ErrorMessage = "Indica la hora")]
+        [Required(ErrorMessage = "Indica la hora.")]
         public string Hora { get; set; } = string.Empty;
 
         public string Notas { get; set; } = string.Empty;
 
         public List<Paciente> PacientesDisponibles { get; set; } = new();
+
+        public Paciente? PacienteSeleccionado { get; set; }
+
+        public Dictionary<string, string> HistoriaPaciente { get; set; } = new();
     }
+
     public class DetalleCitaViewModel
     {
         public int CitaId { get; set; }
@@ -50,6 +62,10 @@ namespace FISIOSPORT.Models
         public string Hora { get; set; } = string.Empty;
 
         public string EstadoCita { get; set; } = string.Empty;
+
+        public string Expediente { get; set; } = string.Empty;
+
+        public DateTime? FechaHistoria { get; set; }
 
         public string MotivoConsulta { get; set; } = "Sin información";
 
@@ -70,6 +86,10 @@ namespace FISIOSPORT.Models
         public int NumeroSesionActual { get; set; }
 
         public string TrabajoSesionActual { get; set; } = string.Empty;
+
+        public string ObservacionesSesion { get; set; } = string.Empty;
+
+        public Dictionary<string, string> Historia { get; set; } = new();
 
         public List<SesionDetalleViewModel> Sesiones { get; set; } = new();
     }

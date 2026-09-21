@@ -29,7 +29,7 @@ namespace FISIOSPORT.Models
         public int SesionesCompletadas { get; set; } = 0;
 
         [Required]
-        public DateTime FechaInicio { get; set; } = DateTime.Today;
+        public DateTime FechaInicio { get; set; } = DateTime.UtcNow.Date;
 
         public DateTime? FechaFin { get; set; }
 

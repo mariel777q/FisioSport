@@ -1,0 +1,1746 @@
+﻿@model FISIOSPORT.Models.CrearPacienteViewModel
+
+@{
+    ViewData["Title"] = "Nuevo paciente";
+}
+
+<div class="min-h-screen bg-slate-950 px-4 py-8 text-white">
+    <div class="mx-auto max-w-5xl">
+
+        <!-- ENCABEZADO -->
+        <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-400">
+                    Gestión de pacientes
+                </p>
+
+                <h1 class="mt-2 text-3xl font-bold">
+                    Registrar nuevo paciente
+                </h1>
+
+                <p class="mt-2 text-slate-400">
+                    Completa los datos personales, la historia clínica inicial y la primera cita.
+                </p>
+            </div>
+
+            <a asp-controller="Fisioterapeuta"
+               asp-action="Dashboard"
+               class="rounded-xl border border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300 transition hover:border-cyan-400 hover:text-cyan-400">
+                Volver al dashboard
+            </a>
+        </div>
+
+        <form asp-controller="Fisioterapeuta"
+              asp-action="CrearPaciente"
+              method="post"
+              class="space-y-8">
+
+            @Html.AntiForgeryToken()
+
+            <!-- ERRORES GENERALES -->
+            <div asp-validation-summary="All"
+                 class="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+            </div>
+
+
+            <!-- ========================================================= -->
+            <!-- DATOS PERSONALES -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <div class="mb-6">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+                        Identificación
+                    </p>
+
+                    <h2 class="mt-1 text-xl font-bold">
+                        Datos personales
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-400">
+                        Información básica para identificar y contactar al paciente.
+                    </p>
+                </div>
+
+                <div class="grid gap-5 md:grid-cols-2">
+
+                    <!-- NOMBRE -->
+                    <div class="md:col-span-2">
+                        <label asp-for="Nombre"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Nombre"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Ejemplo: María García López" />
+
+                        <span asp-validation-for="Nombre"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- CORREO -->
+                    <div>
+                        <label asp-for="Correo"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Correo"
+                               type="email"
+                               autocomplete="email"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="paciente@correo.com" />
+
+                        <span asp-validation-for="Correo"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- TELEFONO -->
+                    <div>
+                        <label asp-for="Telefono"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Telefono"
+                               type="tel"
+                               autocomplete="tel"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Número de teléfono" />
+
+                        <span asp-validation-for="Telefono"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- CONTRASEÑA -->
+                    <div>
+                        <label asp-for="Password"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Password"
+                               type="password"
+                               autocomplete="new-password"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Mínimo 6 caracteres" />
+
+                        <span asp-validation-for="Password"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- CONTACTO DE EMERGENCIA -->
+                    <div>
+                        <label asp-for="ContactoEmergencia"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="ContactoEmergencia"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Nombre y teléfono del contacto" />
+
+                        <span asp-validation-for="ContactoEmergencia"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- DOMICILIO -->
+                    <div class="md:col-span-2">
+                        <label asp-for="Domicilio"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Domicilio"
+                               autocomplete="street-address"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Domicilio completo" />
+
+                        <span asp-validation-for="Domicilio"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- OCUPACIÓN -->
+                    <div>
+                        <label asp-for="Ocupacion"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Ocupacion"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Ocupación actual" />
+
+                        <span asp-validation-for="Ocupacion"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- SEXO -->
+                    <div>
+                        <label asp-for="Sexo"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <select asp-for="Sexo"
+                                class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                            <option value="">Selecciona una opción</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+
+                        <span asp-validation-for="Sexo"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- EDAD -->
+                    <div>
+                        <label asp-for="Edad"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Edad"
+                               type="number"
+                               min="1"
+                               max="120"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Edad" />
+
+                        <span asp-validation-for="Edad"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- ESTADO CIVIL -->
+                    <div>
+                        <label asp-for="EstadoCivil"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <select asp-for="EstadoCivil"
+                                class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                            <option value="">Selecciona una opción</option>
+                            <option value="Soltero(a)">Soltero(a)</option>
+                            <option value="Casado(a)">Casado(a)</option>
+                            <option value="Unión libre">Unión libre</option>
+                            <option value="Divorciado(a)">Divorciado(a)</option>
+                            <option value="Viudo(a)">Viudo(a)</option>
+                        </select>
+
+                        <span asp-validation-for="EstadoCivil"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <!-- ESCOLARIDAD -->
+                    <div>
+                        <label asp-for="Escolaridad"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Escolaridad"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                               placeholder="Nivel de escolaridad" />
+
+                        <span asp-validation-for="Escolaridad"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- EXPLORACIÓN FÍSICA -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <div class="mb-6">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+                        Evaluación
+                    </p>
+
+                    <h2 class="mt-1 text-xl font-bold">
+                        Exploración física
+                    </h2>
+                </div>
+
+                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+
+                    <div>
+                        <label asp-for="Peso"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Peso"
+                               type="number"
+                               step="0.01"
+                               min="0.1"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="Peso"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Talla"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Talla"
+                               type="number"
+                               step="0.01"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="Talla"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Estatura"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Estatura"
+                               type="number"
+                               step="0.01"
+                               min="1"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="Estatura"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="IMC"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="IMC"
+                               type="number"
+                               step="0.01"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="IMC"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Etnia"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Etnia"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="Etnia"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- MOTIVO Y TRATAMIENTOS -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Motivo y tratamientos previos
+                </h2>
+
+                <div class="space-y-5">
+
+                    <div>
+                        <label asp-for="MotivoConsulta"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="MotivoConsulta"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                                  placeholder="Motivo principal de consulta"></textarea>
+
+                        <span asp-validation-for="MotivoConsulta"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="TratamientosPrevios"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="TratamientosPrevios"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                                  placeholder="Tratamientos fisioterapéuticos o médicos previos"></textarea>
+
+                        <span asp-validation-for="TratamientosPrevios"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- ANTECEDENTES -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold">
+                        Antecedentes patológicos y heredofamiliares
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-400">
+                        Selecciona Sí o No y especifica cuando corresponda.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+
+                    <!-- DIABETES -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Diabetes
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Diabetes"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Diabetes"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionDiabetes"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- ALERGIA -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Alergia
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Alergia"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Alergia"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionAlergia"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- HTA -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                HTA
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="HTA"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="HTA"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionHTA"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- CÁNCER -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Cáncer
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Cancer"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Cancer"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionCancer"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- TRANSFUSIONES -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Transfusiones
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Transfusiones"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Transfusiones"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionTransfusiones"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- ENFERMEDADES REUMÁTICAS -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Enfermedades reumáticas
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="EnfermedadesReumaticas"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="EnfermedadesReumaticas"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionEnfermedadesReumaticas"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- ENCAMADO -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Encames
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Encames"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Encames"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionEncames"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- ACCIDENTES -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Accidentes
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Accidentes"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Accidentes"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionAccidentes"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- CARDIOPATÍAS -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Cardiopatías
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Cardiopatias"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Cardiopatias"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionCardiopatias"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- CIRUGÍAS -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Cirugías
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Cirugias"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Cirugias"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="EspecificacionCirugias"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Especifique" />
+
+                        </div>
+                    </div>
+
+
+                    <!-- FRACTURAS -->
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center">
+
+                            <span class="font-semibold">
+                                Fracturas
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Fracturas"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input asp-for="Fracturas"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+
+                            <input asp-for="TipoFractura"
+                                   class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-white outline-none focus:border-cyan-400"
+                                   placeholder="Tipo de fractura" />
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- SIGNOS VITALES -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Signos vitales
+                </h2>
+
+                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+
+                    <div>
+                        <label asp-for="TA"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="TA"
+                               placeholder="Ej. 120/80 mmHg"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="TA"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Temperatura"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Temperatura"
+                               type="number"
+                               step="0.1"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="Temperatura"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="FC"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="FC"
+                               type="number"
+                               min="0"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="FC"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="FR"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="FR"
+                               type="number"
+                               min="0"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                        <span asp-validation-for="FR"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="mt-5">
+                    <label asp-for="EspasmosContracturaMuscular"
+                           class="mb-2 block text-sm font-semibold text-slate-300">
+                    </label>
+
+                    <textarea asp-for="EspasmosContracturaMuscular"
+                              rows="3"
+                              class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                    <span asp-validation-for="EspasmosContracturaMuscular"
+                          class="mt-1 block text-sm text-red-400">
+                    </span>
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- HÁBITOS -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Hábitos y datos de mujeres
+                </h2>
+
+                <div class="space-y-4">
+
+                    @* Los radios usan el mismo name generado por asp-for,
+                       por lo que solo puede seleccionarse una opción por campo. *@
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Tabaquismo</span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="Tabaquismo"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="Tabaquismo"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Alcoholismo</span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="Alcoholismo"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="Alcoholismo"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Drogas</span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="Drogas"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="Drogas"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Actividad física</span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="ActividadFisica"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="ActividadFisica"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Se automedica</span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="SeAutomedica"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="SeAutomedica"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <label asp-for="Pasatiempo"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="Pasatiempo"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                               placeholder="Pasatiempos o actividades habituales" />
+
+                        <span asp-validation-for="Pasatiempo"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div class="grid gap-5 sm:grid-cols-2">
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">
+                                ¿Está embarazada?
+                            </span>
+
+                            <div class="flex gap-5">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="EstaEmbarazada"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="EstaEmbarazada"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label asp-for="NumeroHijos"
+                                   class="mb-2 block text-sm font-semibold text-slate-300">
+                            </label>
+
+                            <input asp-for="NumeroHijos"
+                                   type="number"
+                                   min="0"
+                                   max="30"
+                                   class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+
+                            <span asp-validation-for="NumeroHijos"
+                                  class="mt-1 block text-sm text-red-400">
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- DIAGNÓSTICO -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Diagnóstico médico en rehabilitación
+                </h2>
+
+                <div class="space-y-5">
+
+                    <div>
+                        <label asp-for="DiagnosticoMedicoRehabilitacion"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="DiagnosticoMedicoRehabilitacion"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                        <span asp-validation-for="DiagnosticoMedicoRehabilitacion"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+
+                        <div>
+                            <label asp-for="Reflejos"
+                                   class="mb-2 block text-sm font-semibold text-slate-300">
+                            </label>
+
+                            <textarea asp-for="Reflejos"
+                                      rows="3"
+                                      class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                            <span asp-validation-for="Reflejos"
+                                  class="mt-1 block text-sm text-red-400">
+                            </span>
+                        </div>
+
+                        <div>
+                            <label asp-for="Sensibilidad"
+                                   class="mb-2 block text-sm font-semibold text-slate-300">
+                            </label>
+
+                            <textarea asp-for="Sensibilidad"
+                                      rows="3"
+                                      class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                            <span asp-validation-for="Sensibilidad"
+                                  class="mt-1 block text-sm text-red-400">
+                            </span>
+                        </div>
+
+                        <div>
+                            <label asp-for="LenguajeOrientacion"
+                                   class="mb-2 block text-sm font-semibold text-slate-300">
+                            </label>
+
+                            <textarea asp-for="LenguajeOrientacion"
+                                      rows="3"
+                                      class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                            <span asp-validation-for="LenguajeOrientacion"
+                                  class="mt-1 block text-sm text-red-400">
+                            </span>
+                        </div>
+
+                        <div>
+                            <label asp-for="OtrosDiagnostico"
+                                   class="mb-2 block text-sm font-semibold text-slate-300">
+                            </label>
+
+                            <textarea asp-for="OtrosDiagnostico"
+                                      rows="3"
+                                      class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                            <span asp-validation-for="OtrosDiagnostico"
+                                  class="mt-1 block text-sm text-red-400">
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- CICATRIZ -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Cicatriz quirúrgica
+                </h2>
+
+                <div class="space-y-5">
+
+                    <div>
+                        <label asp-for="SitioCicatriz"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <input asp-for="SitioCicatriz"
+                               class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                               placeholder="Sitio de la cicatriz" />
+
+                        <span asp-validation-for="SitioCicatriz"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+
+                        <label class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Queloide</span>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizQueloide"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizQueloide"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </label>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Retráctil</span>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizRetractil"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizRetractil"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Abierta</span>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizAbierta"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizAbierta"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Con adherencia</span>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizConAdherencia"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizConAdherencia"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                            <span class="mb-3 block font-semibold">Hipertrófica</span>
+
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizHipertrofica"
+                                           type="radio"
+                                           value="true"
+                                           class="accent-cyan-400" />
+                                    Sí
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input asp-for="CicatrizHipertrofica"
+                                           type="radio"
+                                           value="false"
+                                           class="accent-cyan-400" />
+                                    No
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- TRASLADOS -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Traslados
+                </h2>
+
+                <div class="grid gap-5 md:grid-cols-2">
+
+                    <div>
+                        <label asp-for="TrasladosValorInicial"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="TrasladosValorInicial"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                        <span asp-validation-for="TrasladosValorInicial"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="TrasladosValorFinal"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="TrasladosValorFinal"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"></textarea>
+
+                        <span asp-validation-for="TrasladosValorFinal"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Independiente</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoIndependiente"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoIndependiente"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Silla de ruedas</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoSillaRuedas"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoSillaRuedas"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Con ayudas</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoConAyudas"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoConAyudas"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Camilla</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoCamilla"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="TrasladoCamilla"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- MARCHA -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Marcha
+                </h2>
+
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Libre</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaLibre"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaLibre"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Claudicante</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaClaudicante"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaClaudicante"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Con ayuda</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaConAyuda"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaConAyuda"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Espástica</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaEspastica"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaEspastica"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Atáxica</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaAtaxica"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaAtaxica"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                        <span class="mb-3 block font-semibold">Otros</span>
+
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaOtros"
+                                       type="radio"
+                                       value="true"
+                                       class="accent-cyan-400" />
+                                Sí
+                            </label>
+
+                            <label class="flex items-center gap-2">
+                                <input asp-for="MarchaOtros"
+                                       type="radio"
+                                       value="false"
+                                       class="accent-cyan-400" />
+                                No
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-5">
+                    <label asp-for="ObservacionesMarcha"
+                           class="mb-2 block text-sm font-semibold text-slate-300">
+                    </label>
+
+                    <textarea asp-for="ObservacionesMarcha"
+                              rows="4"
+                              class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                              placeholder="Observaciones de la marcha"></textarea>
+
+                    <span asp-validation-for="ObservacionesMarcha"
+                          class="mt-1 block text-sm text-red-400">
+                    </span>
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- ESCALA DEL DOLOR -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-2 text-xl font-bold">
+                    Escala del dolor
+                </h2>
+
+                <p class="mb-6 text-sm text-slate-400">
+                    Selecciona el nivel de dolor actual del paciente.
+                </p>
+
+                <div class="grid grid-cols-6 gap-2 sm:grid-cols-11">
+
+                    @for (var dolor = 0; dolor <= 10; dolor++)
+                    {
+                        <label class="cursor-pointer">
+
+                            <input asp-for="EscalaDolor"
+                                   type="radio"
+                                   value="@dolor"
+                                   class="peer sr-only" />
+
+                            <span class="flex h-12 items-center justify-center rounded-lg border border-slate-700 bg-slate-950 font-bold text-slate-300 transition hover:border-cyan-400 peer-checked:border-cyan-400 peer-checked:bg-cyan-500 peer-checked:text-slate-950">
+                                @dolor
+                            </span>
+
+                        </label>
+                    }
+
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-400 sm:grid-cols-4">
+                    <span>0 · Sin dolor</span>
+                    <span>3–5 · Moderado</span>
+                    <span>6–7 · Fuerte</span>
+                    <span>9–10 · Insoportable</span>
+                </div>
+
+                <span asp-validation-for="EscalaDolor"
+                      class="mt-3 block text-sm text-red-400">
+                </span>
+
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- INFORMACIÓN GENERAL -->
+            <!-- ========================================================= -->
+
+            <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+
+                <h2 class="mb-6 text-xl font-bold">
+                    Información general
+                </h2>
+
+                <div class="space-y-5">
+
+                    <div>
+                        <label asp-for="Antecedentes"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="Antecedentes"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                                  placeholder="Antecedentes generales del paciente"></textarea>
+
+                        <span asp-validation-for="Antecedentes"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Alergias"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="Alergias"
+                                  rows="3"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                                  placeholder="Alergias generales conocidas"></textarea>
+
+                        <span asp-validation-for="Alergias"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Observaciones"
+                               class="mb-2 block text-sm font-semibold text-slate-300">
+                        </label>
+
+                        <textarea asp-for="Observaciones"
+                                  rows="4"
+                                  class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
+                                  placeholder="Observaciones generales del fisioterapeuta"></textarea>
+
+                        <span asp-validation-for="Observaciones"
+                              class="mt-1 block text-sm text-red-400">
+                        </span>
+                    </div>
+
+
+                </div>
+            </section>
+
+
+            <!-- ========================================================= -->
+            <!-- ACCIONES -->
+            <!-- ========================================================= -->
+
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-800 pt-6 sm:flex-row sm:justify-end">
+
+                <a asp-controller="Fisioterapeuta"
+                   asp-action="Dashboard"
+                   class="rounded-xl border border-slate-700 px-6 py-3 text-center font-semibold text-slate-300 transition hover:border-slate-500 hover:text-white">
+                    Cancelar
+                </a>
+
+                <button type="submit"
+                        class="rounded-xl bg-cyan-500 px-6 py-3 font-bold text-slate-950 shadow-lg shadow-cyan-500/10 transition hover:bg-cyan-400">
+                    Guardar paciente, historia clínica y primera cita
+                </button>
+
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+}

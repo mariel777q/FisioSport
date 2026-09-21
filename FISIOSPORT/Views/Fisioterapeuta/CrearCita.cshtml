@@ -1,44 +1,393 @@
 ﻿@model FISIOSPORT.Models.CrearCitaViewModel
+
 @{
     ViewData["Title"] = "Nueva cita";
 }
 
-<a asp-controller="Fisioterapeuta" asp-action="Dashboard" class="text-sm text-gray-400 hover:text-cyan-400 transition inline-block mb-6">&larr; Volver al dashboard</a>
+<div class="max-w-6xl mx-auto">
 
-<div class="max-w-lg rounded-xl border border-gray-800 bg-[#161b22] p-6">
-    <h3 class="text-xl font-bold text-white mb-5">Registrar nueva cita</h3>
+    <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
-    <form asp-controller="Fisioterapeuta" asp-action="CrearCita" method="post" class="space-y-5">
         <div>
-            <label asp-for="PacienteId" class="block text-sm text-gray-300 mb-1">Paciente</label>
-            <select asp-for="PacienteId" class="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-4 py-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/60">
-                <option value="">-- Selecciona un paciente --</option>
-                @foreach (var p in Model.PacientesDisponibles)
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">
+                Agenda
+            </p>
+
+            <h1 class="mt-2 text-3xl font-extrabold text-white">
+                Nueva cita
+            </h1>
+
+            <p class="mt-2 text-sm text-gray-400">
+                Selecciona un paciente. Su historia clínica aparecerá automáticamente
+                y no podrá modificarse desde esta pantalla.
+            </p>
+        </div>
+
+        <a asp-action="Dashboard"
+           class="inline-flex items-center justify-center rounded-xl border border-gray-700 px-5 py-3 text-sm font-semibold text-gray-300 hover:border-cyan-400 hover:text-cyan-400 transition">
+            ← Volver
+        </a>
+
+    </div>
+
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="mb-6 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-300">
+            @TempData["MensajeExito"]
+        </div>
+    }
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- ===================================================== -->
+        <!-- DATOS DE LA CITA -->
+        <!-- ===================================================== -->
+
+        <section class="xl:col-span-1 rounded-2xl border border-gray-800 bg-[#161b22] p-6">
+
+            <div class="mb-6">
+
+                <h2 class="text-lg font-bold text-white">
+                    Datos de la cita
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    La siguiente sesión pendiente se asociará automáticamente.
+                </p>
+
+            </div>
+
+            <form asp-action="CrearCita"
+                  method="post"
+                  class="space-y-5">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+                </div>
+
+                <div>
+
+                    <label asp-for="PacienteId"
+                           class="field-label">
+                        Paciente *
+                    </label>
+
+                    <select asp-for="PacienteId"
+                            onchange="cambiarPaciente(this.value)"
+                            class="field-input">
+
+                        <option value="0">
+                            -- Selecciona un paciente --
+                        </option>
+
+                        @foreach (var paciente in Model.PacientesDisponibles)
+                        {
+                            <option value="@paciente.Id">
+                                @paciente.Nombre
+                            </option>
+                        }
+
+                    </select>
+
+                    <span asp-validation-for="PacienteId"
+                          class="field-error"></span>
+
+                </div>
+
+                <div>
+
+                    <label asp-for="Fecha"
+                           class="field-label">
+                        Fecha *
+                    </label>
+
+                    <input asp-for="Fecha"
+                           type="date"
+                           class="field-input" />
+
+                    <span asp-validation-for="Fecha"
+                          class="field-error"></span>
+
+                </div>
+
+                <div>
+
+                    <label asp-for="Hora"
+                           class="field-label">
+                        Hora *
+                    </label>
+
+                    <input asp-for="Hora"
+                           type="time"
+                           class="field-input" />
+
+                    <span asp-validation-for="Hora"
+                          class="field-error"></span>
+
+                </div>
+
+                <div>
+
+                    <label asp-for="Notas"
+                           class="field-label">
+                        Observaciones de la cita
+                    </label>
+
+                    <textarea asp-for="Notas"
+                              rows="4"
+                              class="field-input"
+                              placeholder="Observaciones opcionales de la cita..."></textarea>
+
+                </div>
+
+                <button type="submit"
+                        class="w-full rounded-xl bg-cyan-400 px-5 py-3 font-bold text-[#071017] hover:bg-cyan-300 transition">
+
+                    <i class="bi bi-calendar-plus mr-2"></i>
+
+                    Agendar cita
+
+                </button>
+
+                <a asp-action="CrearPaciente"
+                   class="flex w-full items-center justify-center rounded-xl border border-cyan-400/30 px-5 py-3 font-semibold text-cyan-400 hover:bg-cyan-400/10 transition">
+
+                    <i class="bi bi-person-plus mr-2"></i>
+
+                    Registrar nuevo paciente
+
+                </a>
+
+            </form>
+
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- HISTORIA CLÍNICA SOLO LECTURA -->
+        <!-- ===================================================== -->
+
+        <section class="xl:col-span-2 rounded-2xl border border-gray-800 bg-[#161b22] p-6">
+
+            @if (Model.PacienteSeleccionado == null)
+            {
+                <div class="min-h-[500px] flex flex-col items-center justify-center text-center">
+
+                    <div class="w-16 h-16 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 text-2xl">
+                        <i class="bi bi-person-vcard"></i>
+                    </div>
+
+                    <h2 class="mt-5 text-xl font-bold text-white">
+                        Historia clínica
+                    </h2>
+
+                    <p class="mt-2 max-w-md text-sm text-gray-500">
+                        Selecciona un paciente para mostrar automáticamente
+                        su historia clínica.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+
+                    <div>
+
+                        <p class="text-xs uppercase tracking-wider text-cyan-400">
+                            Historia clínica — solo lectura
+                        </p>
+
+                        <h2 class="mt-1 text-2xl font-bold text-white">
+                            @Model.PacienteSeleccionado.Nombre
+                        </h2>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            La información clínica no se puede editar al agendar una cita.
+                        </p>
+
+                    </div>
+
+                    <a asp-action="DescargarHistoriaClinica"
+                       asp-route-pacienteId="@Model.PacienteSeleccionado.Id"
+                       class="inline-flex items-center justify-center rounded-xl border border-cyan-400/30 px-4 py-3 text-sm font-bold text-cyan-400 hover:bg-cyan-400/10 transition">
+
+                        <i class="bi bi-file-earmark-pdf mr-2"></i>
+
+                        Descargar PDF
+
+                    </a>
+
+                </div>
+
+                @if (Model.HistoriaPaciente.Any())
                 {
-                    <option value="@p.Id">@p.Nombre</option>
+                    <div class="space-y-6">
+
+                        <div>
+                            <h3 class="medical-read-title">
+                                Datos del paciente
+                            </h3>
+
+                            <div class="medical-read-grid">
+
+                                @foreach (var item in Model.HistoriaPaciente.Take(11))
+                                {
+                                    <div class="medical-read-item">
+
+                                        <span>
+                                            @item.Key
+                                        </span>
+
+                                        <strong>
+                                            @item.Value
+                                        </strong>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div>
+
+                            <h3 class="medical-read-title">
+                                Historia clínica
+                            </h3>
+
+                            <div class="medical-read-grid">
+
+                                @foreach (var item in Model.HistoriaPaciente.Skip(11))
+                                {
+                                    <div class="medical-read-item">
+
+                                        <span>
+                                            @item.Key
+                                        </span>
+
+                                        <strong>
+                                            @item.Value
+                                        </strong>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
                 }
-            </select>
-            <span asp-validation-for="PacienteId" class="text-red-400 text-xs"></span>
-        </div>
+                else
+                {
+                    <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-5 text-sm text-amber-300">
+                        Este paciente no tiene una historia clínica registrada.
+                    </div>
+                }
+            }
 
-        <div>
-            <label asp-for="Fecha" class="block text-sm text-gray-300 mb-1"></label>
-            <input asp-for="Fecha" type="date" class="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-4 py-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/60" />
-        </div>
+        </section>
 
-        <div>
-            <label asp-for="Hora" class="block text-sm text-gray-300 mb-1"></label>
-            <input asp-for="Hora" type="time" class="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-4 py-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/60" />
-            <span asp-validation-for="Hora" class="text-red-400 text-xs"></span>
-        </div>
+    </div>
 
-        <div>
-            <label asp-for="Notas" class="block text-sm text-gray-300 mb-1"></label>
-            <textarea asp-for="Notas" rows="3" class="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-4 py-2.5 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/60"></textarea>
-        </div>
-
-        <button type="submit" class="w-full bg-cyan-400 text-[#0d1117] font-bold py-2.5 rounded-lg hover:bg-cyan-300 transition shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-            Guardar cita
-        </button>
-    </form>
 </div>
+
+<style>
+    .field-label {
+        display: block;
+        margin-bottom: .5rem;
+        color: #d1d5db;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+
+    .field-input {
+        width: 100%;
+        border-radius: .75rem;
+        border: 1px solid #374151;
+        background: #0d1117;
+        color: white;
+        padding: .75rem 1rem;
+        outline: none;
+    }
+
+    .field-input:focus {
+        border-color: #22d3ee;
+        box-shadow: 0 0 0 2px rgba(34, 211, 238, .12);
+    }
+
+    .field-error {
+        display: block;
+        margin-top: .3rem;
+        color: #f87171;
+        font-size: .75rem;
+    }
+
+    .medical-read-title {
+        color: #22d3ee;
+        font-size: .8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        margin-bottom: 1rem;
+        padding-bottom: .7rem;
+        border-bottom: 1px solid rgba(148,163,184,.12);
+    }
+
+    .medical-read-grid {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: .65rem;
+    }
+
+    .medical-read-item {
+        border: 1px solid rgba(148,163,184,.12);
+        background: #0d1117;
+        border-radius: .75rem;
+        padding: .75rem;
+    }
+
+    .medical-read-item span {
+        display: block;
+        color: #6b7280;
+        font-size: .68rem;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        margin-bottom: .25rem;
+    }
+
+    .medical-read-item strong {
+        display: block;
+        color: #e5e7eb;
+        font-size: .85rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    @@media (min-width: 768px) {
+        .medical-read-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function cambiarPaciente(id) {
+            if (!id || id === "0") {
+                window.location.href =
+                    '@Url.Action("CrearCita", "Fisioterapeuta")';
+                return;
+            }
+
+            window.location.href =
+                '@Url.Action("CrearCita", "Fisioterapeuta")'
+                + '?pacienteId=' + encodeURIComponent(id);
+        }
+    </script>
+}

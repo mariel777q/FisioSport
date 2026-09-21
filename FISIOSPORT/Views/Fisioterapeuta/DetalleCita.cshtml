@@ -1,411 +1,582 @@
 ﻿@model FISIOSPORT.Models.DetalleCitaViewModel
 
 @{
-    ViewData["Title"] = "Detalle del paciente";
+    ViewData["Title"] = "Sesión del paciente";
 
-    var colorEstado = Model.EstadoCita switch
+    var estadoClase = Model.EstadoCita switch
     {
-        "Confirmada" => "bg-emerald-400/10 text-emerald-400 border-emerald-400/30",
-        "Pendiente" => "bg-amber-400/10 text-amber-400 border-amber-400/30",
-        "Completada" => "bg-gray-400/10 text-gray-300 border-gray-400/30",
-        _ => "bg-red-400/10 text-red-400 border-red-400/30"
+        "Pendiente" =>
+            "bg-amber-400/10 text-amber-300 border-amber-400/30",
+
+        "Confirmada" =>
+            "bg-emerald-400/10 text-emerald-300 border-emerald-400/30",
+
+        "Completada" =>
+            "bg-gray-400/10 text-gray-300 border-gray-400/30",
+
+        _ =>
+            "bg-red-400/10 text-red-300 border-red-400/30"
     };
 }
 
 <div class="mb-6">
-    <a asp-controller="Fisioterapeuta"
-       asp-action="Dashboard"
-       class="text-sm text-gray-400 hover:text-cyan-400 transition">
 
+    <a asp-action="Dashboard"
+       class="text-sm text-gray-400 hover:text-cyan-400 transition">
         ← Volver al dashboard
     </a>
+
 </div>
 
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+<div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between mb-8">
 
     <div>
-        <p class="text-sm text-cyan-400 mb-1">Detalle de cita</p>
 
-        <h1 class="text-3xl font-extrabold text-white">
+        <p class="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">
+            Atención fisioterapéutica
+        </p>
+
+        <h1 class="mt-2 text-3xl font-extrabold text-white">
             @Model.NombrePaciente
         </h1>
 
-        <p class="text-gray-400 mt-2">
-            @Model.Fecha.ToString("dd MMM yyyy") · @Model.Hora
+        <p class="mt-2 text-sm text-gray-400">
+            @Model.Fecha.ToString("dd/MM/yyyy") · @Model.Hora
         </p>
+
+        <p class="mt-1 text-xs text-gray-500">
+            Expediente: @Model.Expediente
+        </p>
+
     </div>
 
-    <span class="self-start text-sm px-3 py-1 rounded-full border @colorEstado">
+    <span class="self-start rounded-full border px-4 py-2 text-xs font-bold @estadoClase">
         @Model.EstadoCita
     </span>
+
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- ============================================================= -->
+<!-- HISTORIA CLÍNICA -->
+<!-- ============================================================= -->
 
-    <div class="lg:col-span-2 space-y-6">
+<section class="rounded-2xl border border-blue-400/20 bg-[#f8fafc] text-slate-900 overflow-hidden mb-8">
 
-        <section class="rounded-xl border border-gray-800 bg-[#161b22] p-6">
+    <div class="bg-blue-600 px-6 py-5 text-white flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
-            <h2 class="text-lg font-bold text-white mb-5">
-                Información del paciente
+        <div>
+
+            <p class="text-xs font-bold tracking-[0.18em] opacity-80">
+                FISIOSPORT
+            </p>
+
+            <h2 class="text-xl font-extrabold mt-1">
+                HISTORIA CLÍNICA FISIOTERAPIA
             </h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        </div>
 
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Nombre completo
-                    </p>
+        <a asp-action="DescargarHistoriaClinica"
+           asp-route-pacienteId="@Model.Historia.GetValueOrDefault("IdPaciente")"
+           class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50 transition">
 
-                    <p class="text-gray-100 mt-1">
-                        @Model.NombrePaciente
-                    </p>
-                </div>
+            <i class="bi bi-file-earmark-pdf mr-2"></i>
+            Descargar PDF
 
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Correo electrónico
-                    </p>
+        </a>
 
-                    <p class="text-gray-100 mt-1">
-                        @Model.CorreoPaciente
-                    </p>
-                </div>
+    </div>
 
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Teléfono
-                    </p>
+    @if (Model.Historia.Any())
+    {
+        <div class="p-6 space-y-7">
 
-                    <p class="text-gray-100 mt-1">
-                        @Model.TelefonoPaciente
-                    </p>
-                </div>
+            <div>
 
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Fecha de cita
-                    </p>
+                <h3 class="medical-section-title">
+                    Datos del paciente
+                </h3>
 
-                    <p class="text-gray-100 mt-1">
-                        @Model.Fecha.ToString("dd/MM/yyyy")
-                    </p>
-                </div>
+                <div class="medical-grid">
 
-            </div>
-
-        </section>
-
-        <section class="rounded-xl border border-gray-800 bg-[#161b22] p-6">
-
-            <div class="flex items-center justify-between mb-5">
-
-                <h2 class="text-lg font-bold text-white">
-                    Motivo y diagnóstico
-                </h2>
-
-            </div>
-
-            <div class="space-y-5">
-
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Motivo de consulta
-                    </p>
-
-                    <p class="text-gray-200 mt-2 leading-relaxed">
-                        @Model.MotivoConsulta
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Diagnóstico
-                    </p>
-
-                    <p class="text-gray-200 mt-2 leading-relaxed">
-                        @Model.Diagnostico
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider">
-                        Tratamiento
-                    </p>
-
-                    <p class="text-gray-200 mt-2 leading-relaxed">
-                        @Model.DescripcionTratamiento
-                    </p>
-                </div>
-
-            </div>
-
-        </section>
-
-        <section class="rounded-xl border border-gray-800 bg-[#161b22] p-6">
-
-            <div class="flex items-center justify-between mb-5">
-
-                <div>
-                    <h2 class="text-lg font-bold text-white">
-                        Progreso del tratamiento
-                    </h2>
-
-                    <p class="text-sm text-gray-400 mt-1">
-                        Sesiones completadas y pendientes.
-                    </p>
-                </div>
-
-                <span class="text-cyan-400 font-bold text-lg">
-                    @Model.PorcentajeProgreso%
-                </span>
-
-            </div>
-
-            <div class="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
-
-                <div class="bg-cyan-400 h-3 rounded-full transition-all duration-500"
-                     style="width: @Model.PorcentajeProgreso%;">
-                </div>
-
-            </div>
-
-            <div class="flex justify-between text-sm mt-3">
-
-                <span class="text-emerald-400">
-                    @Model.SesionesCompletadas completadas
-                </span>
-
-                <span class="text-gray-400">
-                    @Model.SesionesRestantes restantes
-                </span>
-
-            </div>
-
-        </section>
-
-        <section class="rounded-xl border border-gray-800 bg-[#161b22] p-6">
-
-            <div class="flex items-center justify-between mb-6">
-
-                <div>
-                    <h2 class="text-lg font-bold text-white">
-                        Sesiones del tratamiento
-                    </h2>
-
-                    <p class="text-sm text-gray-400 mt-1">
-                        Historial y próximas sesiones.
-                    </p>
-                </div>
-
-                <span class="text-sm text-gray-400">
-                    @Model.SesionesCompletadas/@Model.TotalSesiones
-                </span>
-
-            </div>
-
-            @if (!Model.Sesiones.Any())
-            {
-                <p class="text-gray-500">
-                    Este tratamiento todavía no tiene sesiones registradas.
-                </p>
-            }
-            else
-            {
-                <div class="space-y-3">
-
-                    @foreach (var sesion in Model.Sesiones)
+                    @foreach (var item in Model.Historia.Take(11))
                     {
-                        var clase = sesion.EstaCompletada
-                            ? "border-emerald-400/30 bg-emerald-400/5"
-                            : sesion.EsSesionActual
-                                ? "border-cyan-400/50 bg-cyan-400/10"
-                                : "border-gray-800 bg-[#0d1117]";
+                        <div class="medical-box">
 
-                        <div class="rounded-lg border @clase p-4">
+                            <span>
+                                @item.Key
+                            </span>
 
-                            <div class="flex items-start gap-3">
-
-                                <div class="flex-shrink-0">
-
-                                    @if (sesion.EstaCompletada)
-                                    {
-                                        <div class="w-8 h-8 rounded-full bg-emerald-400 text-[#0d1117] flex items-center justify-center font-bold">
-                                            ✓
-                                        </div>
-                                    }
-                                    else if (sesion.EsSesionActual)
-                                    {
-                                        <div class="w-8 h-8 rounded-full bg-cyan-400 text-[#0d1117] flex items-center justify-center font-bold">
-                                            @sesion.NumeroSesion
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="w-8 h-8 rounded-full border border-gray-600 text-gray-400 flex items-center justify-center font-bold">
-                                            @sesion.NumeroSesion
-                                        </div>
-                                    }
-
-                                </div>
-
-                                <div class="flex-1">
-
-                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-
-                                        <h3 class="font-semibold text-gray-100">
-                                            Sesión @sesion.NumeroSesion
-                                        </h3>
-
-                                        @if (sesion.EstaCompletada)
-                                        {
-                                            <span class="text-xs text-emerald-400">
-                                                Completada
-                                            </span>
-                                        }
-                                        else if (sesion.EsSesionActual)
-                                        {
-                                            <span class="text-xs text-cyan-400 font-semibold">
-                                                Próxima sesión
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-xs text-gray-500">
-                                                Pendiente
-                                            </span>
-                                        }
-
-                                    </div>
-
-                                    <p class="text-sm text-gray-400 mt-2">
-                                        @sesion.TrabajoPlanificado
-                                    </p>
-
-                                    @if (sesion.FechaCompletada.HasValue)
-                                    {
-                                        <p class="text-xs text-gray-500 mt-2">
-                                            Completada el
-                                            @sesion.FechaCompletada.Value.ToString("dd/MM/yyyy HH:mm")
-                                        </p>
-                                    }
-
-                                    @if (sesion.EsSesionActual && !sesion.EstaCompletada)
-                                    {
-                                        <p class="text-xs text-cyan-300 mt-3">
-                                            Esta es la sesión que corresponde trabajar actualmente.
-                                        </p>
-                                    }
-
-                                </div>
-
-                            </div>
+                            <strong>
+                                @item.Value
+                            </strong>
 
                         </div>
                     }
 
                 </div>
-            }
 
-        </section>
+            </div>
 
-    </div>
+            <div>
 
-    <div class="space-y-6">
+                <h3 class="medical-section-title">
+                    Información clínica
+                </h3>
 
-        <section class="rounded-xl border border-cyan-400/20 bg-[#161b22] p-6">
+                <div class="medical-grid">
 
-            <p class="text-xs text-gray-500 uppercase tracking-wider">
-                Próxima sesión
-            </p>
+                    @foreach (var item in Model.Historia.Skip(11))
+                    {
+                        <div class="medical-box">
 
-            @if (Model.NumeroSesionActual > 0)
-            {
-                <h2 class="text-2xl font-extrabold text-cyan-400 mt-2">
-                    Sesión @Model.NumeroSesionActual
+                            <span>
+                                @item.Key
+                            </span>
+
+                            <strong>
+                                @item.Value
+                            </strong>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="p-6 text-sm text-gray-500">
+            No hay información clínica disponible.
+        </div>
+    }
+
+</section>
+
+<!-- ============================================================= -->
+<!-- TRATAMIENTO -->
+<!-- ============================================================= -->
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <section class="lg:col-span-2 space-y-6">
+
+        <div class="rounded-2xl border border-gray-800 bg-[#161b22] p-6">
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                <div>
+
+                    <p class="text-xs uppercase tracking-wider text-gray-500">
+                        Tratamiento
+                    </p>
+
+                    <h2 class="text-xl font-bold text-white mt-1">
+                        Progreso de rehabilitación
+                    </h2>
+
+                </div>
+
+                <div class="text-right">
+
+                    <p class="text-3xl font-extrabold text-cyan-400">
+                        @Model.PorcentajeProgreso%
+                    </p>
+
+                    <p class="text-xs text-gray-500">
+                        progreso
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="mt-6 h-3 w-full overflow-hidden rounded-full bg-gray-800">
+
+                <div class="h-full rounded-full bg-cyan-400 transition-all"
+                     style="width:@Model.PorcentajeProgreso%">
+                </div>
+
+            </div>
+
+            <div class="mt-4 grid grid-cols-3 gap-3">
+
+                <div class="rounded-xl border border-gray-800 bg-[#0d1117] p-4 text-center">
+
+                    <p class="text-2xl font-extrabold text-white">
+                        @Model.TotalSesiones
+                    </p>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        Total
+                    </p>
+
+                </div>
+
+                <div class="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-center">
+
+                    <p class="text-2xl font-extrabold text-emerald-400">
+                        @Model.SesionesCompletadas
+                    </p>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        Completadas
+                    </p>
+
+                </div>
+
+                <div class="rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-4 text-center">
+
+                    <p class="text-2xl font-extrabold text-cyan-400">
+                        @Model.SesionesRestantes
+                    </p>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        Restantes
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SESIÓN ACTUAL -->
+
+        @if (Model.NumeroSesionActual > 0 && Model.EstadoCita != "Completada")
+        {
+            <section class="rounded-2xl border border-cyan-400/30 bg-[#111820] p-6">
+
+                <div class="flex items-center gap-3 mb-5">
+
+                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400 text-[#071017] font-extrabold">
+                        @Model.NumeroSesionActual
+                    </div>
+
+                    <div>
+
+                        <p class="text-xs uppercase tracking-wider text-cyan-400">
+                            Sesión actual
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white">
+                            Sesión @Model.NumeroSesionActual
+                        </h2>
+
+                    </div>
+
+                </div>
+
+                <div class="rounded-xl border border-gray-800 bg-[#0d1117] p-5">
+
+                    <p class="text-xs uppercase tracking-wider text-gray-500">
+                        Trabajo planificado
+                    </p>
+
+                    <p class="mt-2 text-sm leading-7 text-gray-200">
+                        @Model.TrabajoSesionActual
+                    </p>
+
+                </div>
+
+                <form asp-action="CompletarSesion"
+                      method="post"
+                      class="mt-5">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="sesionId"
+                           value="@Model.SesionActualId" />
+
+                    <input type="hidden"
+                           name="citaId"
+                           value="@Model.CitaId" />
+
+                    <label class="field-label">
+                        Observaciones de la sesión
+                        <span class="text-gray-500 font-normal">
+                            (opcional)
+                        </span>
+                    </label>
+
+                    <textarea name="observaciones"
+                              rows="5"
+                              class="field-input"
+                              placeholder="Escribe aquí lo ocurrido durante esta sesión, respuesta del paciente, evolución, ejercicios realizados, etc."></textarea>
+
+                    <button type="submit"
+                            class="mt-4 w-full rounded-xl bg-emerald-400 px-5 py-3.5 font-extrabold text-[#071017] hover:bg-emerald-300 transition">
+
+                        ✓ Completar sesión
+
+                    </button>
+
+                    <p class="mt-3 text-center text-xs text-gray-500">
+                        Al completar la sesión, la cita cambiará a Completada,
+                        el contador se actualizará y esta cita dejará de aparecer
+                        en el dashboard principal.
+                    </p>
+
+                </form>
+
+            </section>
+        }
+        else if (Model.EstadoCita == "Completada")
+        {
+            <section class="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-6">
+
+                <div class="flex items-center gap-3">
+
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400 text-[#071017] text-xl font-bold">
+                        ✓
+                    </div>
+
+                    <div>
+
+                        <h2 class="font-bold text-emerald-300">
+                            Sesión completada con éxito
+                        </h2>
+
+                        <p class="text-sm text-gray-400 mt-1">
+                            Esta sesión ya fue registrada como completada.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+        }
+
+        <!-- HISTORIAL DE SESIONES -->
+
+        <section class="rounded-2xl border border-gray-800 bg-[#161b22] p-6">
+
+            <div class="mb-5">
+
+                <h2 class="text-lg font-bold text-white">
+                    Seguimiento de sesiones
                 </h2>
 
-                <p class="text-sm text-gray-300 mt-4 leading-relaxed">
-                    @Model.TrabajoSesionActual
+                <p class="text-sm text-gray-500 mt-1">
+                    Historial del tratamiento.
                 </p>
 
-                <div class="mt-6 pt-5 border-t border-gray-800">
+            </div>
 
-                    <form asp-controller="Fisioterapeuta"
-                          asp-action="CompletarSesion"
-                          method="post">
+            <div class="space-y-3">
 
-                        <input type="hidden"
-                               name="sesionId"
-                               value="@Model.SesionActualId" />
+                @foreach (var sesion in Model.Sesiones)
+                {
+                    var clase =
+                        sesion.EstaCompletada
+                            ? "border-emerald-400/20 bg-emerald-400/5"
+                            : sesion.EsSesionActual
+                                ? "border-cyan-400/30 bg-cyan-400/5"
+                                : "border-gray-800 bg-[#0d1117]";
 
-                        <input type="hidden"
-                               name="citaId"
-                               value="@Model.CitaId" />
+                    <div class="rounded-xl border @clase p-4">
 
-                        @Html.AntiForgeryToken()
+                        <div class="flex items-start gap-4">
 
-                        <button type="submit"
-                                class="w-full bg-emerald-400 text-[#0d1117] font-bold py-3 rounded-lg hover:bg-emerald-300 transition">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-700 text-sm font-bold text-gray-300">
 
-                            ✓ Completar sesión
-                        </button>
+                                @if (sesion.EstaCompletada)
+                                {
+                                    <span class="text-emerald-400">✓</span>
+                                }
+                                else
+                                {
+                                    @sesion.NumeroSesion
+                                }
 
-                    </form>
+                            </div>
 
-                </div>
-            }
-            else
-            {
-                <p class="text-gray-400 mt-3">
-                    No hay sesiones pendientes.
-                </p>
-            }
+                            <div class="min-w-0 flex-1">
+
+                                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+
+                                    <h3 class="font-bold text-gray-100">
+                                        Sesión @sesion.NumeroSesion
+                                    </h3>
+
+                                    <span class="text-xs @(sesion.EstaCompletada ? "text-emerald-400" : "text-gray-500")">
+                                        @(sesion.EstaCompletada ? "Completada" : "Pendiente")
+                                    </span>
+
+                                </div>
+
+                                <p class="mt-2 text-sm text-gray-400">
+                                    @sesion.TrabajoPlanificado
+                                </p>
+
+                                @if (!string.IsNullOrWhiteSpace(sesion.Observaciones))
+                                {
+                                    <div class="mt-3 rounded-lg border border-gray-800 bg-[#0d1117] p-3">
+
+                                        <p class="text-[11px] uppercase tracking-wider text-gray-600">
+                                            Observaciones
+                                        </p>
+
+                                        <p class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">
+                                            @sesion.Observaciones
+                                        </p>
+
+                                    </div>
+                                }
+
+                                @if (sesion.FechaCompletada.HasValue)
+                                {
+                                    <p class="mt-2 text-xs text-gray-600">
+                                        Completada:
+                                        @sesion.FechaCompletada.Value.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
 
         </section>
 
-        <section class="rounded-xl border border-gray-800 bg-[#161b22] p-6">
+    </section>
 
-            <h2 class="text-lg font-bold text-white mb-4">
-                Resumen
+    <!-- RESUMEN -->
+
+    <aside class="space-y-6">
+
+        <section class="rounded-2xl border border-gray-800 bg-[#161b22] p-6">
+
+            <p class="text-xs uppercase tracking-wider text-gray-500">
+                Paciente
+            </p>
+
+            <h2 class="mt-2 text-xl font-bold text-white">
+                @Model.NombrePaciente
             </h2>
 
-            <div class="space-y-4">
+            <div class="mt-5 space-y-3 text-sm">
 
-                <div class="flex justify-between">
-                    <span class="text-gray-400 text-sm">
-                        Total de sesiones
+                <div>
+                    <span class="text-gray-500">
+                        Correo
                     </span>
 
-                    <span class="text-gray-100 font-semibold">
-                        @Model.TotalSesiones
-                    </span>
+                    <p class="text-gray-200 mt-1 break-all">
+                        @Model.CorreoPaciente
+                    </p>
                 </div>
 
-                <div class="flex justify-between">
-                    <span class="text-gray-400 text-sm">
-                        Completadas
+                <div>
+                    <span class="text-gray-500">
+                        Teléfono
                     </span>
 
-                    <span class="text-emerald-400 font-semibold">
-                        @Model.SesionesCompletadas
-                    </span>
+                    <p class="text-gray-200 mt-1">
+                        @Model.TelefonoPaciente
+                    </p>
                 </div>
 
-                <div class="flex justify-between">
-                    <span class="text-gray-400 text-sm">
-                        Restantes
+                <div>
+                    <span class="text-gray-500">
+                        Expediente
                     </span>
 
-                    <span class="text-cyan-400 font-semibold">
-                        @Model.SesionesRestantes
-                    </span>
+                    <p class="text-cyan-400 font-bold mt-1">
+                        @Model.Expediente
+                    </p>
                 </div>
 
             </div>
 
         </section>
 
-    </div>
+    </aside>
 
 </div>
+
+<style>
+
+    .field-label {
+        display: block;
+        margin-bottom: .5rem;
+        color: #d1d5db;
+        font-size: .82rem;
+        font-weight: 700;
+    }
+
+    .field-input {
+        width: 100%;
+        border-radius: .75rem;
+        border: 1px solid #374151;
+        background: #0d1117;
+        color: white;
+        padding: .75rem 1rem;
+        outline: none;
+    }
+
+    .field-input:focus {
+        border-color: #22d3ee;
+        box-shadow: 0 0 0 2px rgba(34, 211, 238, .12);
+    }
+
+    .medical-section-title {
+        color: #2563eb;
+        font-size: .75rem;
+        font-weight: 900;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #dbeafe;
+        padding-bottom: .6rem;
+    }
+
+    .medical-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: .65rem;
+    }
+
+    .medical-box {
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        border-radius: .7rem;
+        padding: .75rem;
+    }
+
+    .medical-box span {
+        display: block;
+        color: #64748b;
+        font-size: .65rem;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: .25rem;
+    }
+
+    .medical-box strong {
+        display: block;
+        color: #0f172a;
+        font-size: .83rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    @@media (min-width: 768px) {
+
+        .medical-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+</style>

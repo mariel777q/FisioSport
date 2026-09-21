@@ -17,7 +17,7 @@ namespace FISIOSPORT.Models
         public Paciente? Paciente { get; set; }
 
         [Required]
-        public DateTime Fecha { get; set; } = DateTime.Today;
+        public DateTime Fecha { get; set; } = DateTime.UtcNow.Date;
 
         public DateTime? FechaCompletado { get; set; }
 
