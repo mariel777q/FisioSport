@@ -3,6 +3,7 @@ using System;
 using FISIOSPORT.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FISIOSPORT.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260921005841_CambiarOtrosHallazgosAText")]
+    partial class CambiarOtrosHallazgosAText
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -184,23 +187,10 @@ namespace FISIOSPORT.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Activo")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(3000)
                         .HasColumnType("character varying(3000)");
-
-                    b.Property<string>("FasePaciente")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("ImagenUrl")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("Instrucciones")
                         .IsRequired()
@@ -212,37 +202,12 @@ namespace FISIOSPORT.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<string>("ObjetivoTerapeutico")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("RegionAnatomica")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("TipoContraccion")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("VideoUrl")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FasePaciente");
-
-                    b.HasIndex("Nombre");
-
-                    b.HasIndex("ObjetivoTerapeutico");
-
-                    b.HasIndex("RegionAnatomica");
-
-                    b.HasIndex("TipoContraccion");
 
                     b.ToTable("Ejercicios");
                 });
@@ -258,14 +223,8 @@ namespace FISIOSPORT.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("CitaId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("EjercicioId")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime>("FechaAsignacion")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Frecuencia")
                         .IsRequired()
@@ -277,7 +236,7 @@ namespace FISIOSPORT.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<int?>("ProgramaRehabilitacionId")
+                    b.Property<int>("ProgramaRehabilitacionId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Repeticiones")
@@ -287,8 +246,6 @@ namespace FISIOSPORT.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CitaId");
 
                     b.HasIndex("EjercicioId");
 
@@ -682,11 +639,6 @@ namespace FISIOSPORT.Migrations
 
             modelBuilder.Entity("FISIOSPORT.Models.EjercicioAsignado", b =>
                 {
-                    b.HasOne("FISIOSPORT.Models.Cita", "Cita")
-                        .WithMany("EjerciciosAsignados")
-                        .HasForeignKey("CitaId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("FISIOSPORT.Models.Ejercicio", "Ejercicio")
                         .WithMany("Asignaciones")
                         .HasForeignKey("EjercicioId")
@@ -696,9 +648,8 @@ namespace FISIOSPORT.Migrations
                     b.HasOne("FISIOSPORT.Models.ProgramaRehabilitacion", "ProgramaRehabilitacion")
                         .WithMany("EjerciciosAsignados")
                         .HasForeignKey("ProgramaRehabilitacionId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Cita");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Ejercicio");
 
@@ -790,11 +741,6 @@ namespace FISIOSPORT.Migrations
                     b.Navigation("Fisioterapeuta");
 
                     b.Navigation("Paciente");
-                });
-
-            modelBuilder.Entity("FISIOSPORT.Models.Cita", b =>
-                {
-                    b.Navigation("EjerciciosAsignados");
                 });
 
             modelBuilder.Entity("FISIOSPORT.Models.Ejercicio", b =>

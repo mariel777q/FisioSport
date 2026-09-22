@@ -21,10 +21,11 @@ body {
 .hero-section {
     background: linear-gradient( 135deg, rgba(7, 17, 31, 0.98), rgba(13, 110, 253, 0.78) );
     color: white;
-    padding: 100px 0;
-    min-height: 700px;
-    display: flex;
-    align-items: center;
+    padding-top: 15px !important; /* Reduce el espacio superior al mínimo */
+    padding-bottom: 50px !important;
+    min-height: auto !important; /* Quita los 700px mínimos que estiraban la sección */
+    display: flex !important;
+    align-items: flex-start !important; /* Alinea todo el contenido hacia arriba */
 }
 
 .min-vh-75 {

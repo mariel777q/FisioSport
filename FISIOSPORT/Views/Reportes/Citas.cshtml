@@ -1,0 +1,248 @@
+﻿@model IEnumerable<FISIOSPORT.DTOs.CitaReporteDto>
+
+@{
+    ViewData["Title"] = "Reportes";
+
+    var fechaInicio =
+        ViewBag.FechaInicio as string ?? "";
+
+    var fechaFin =
+        ViewBag.FechaFin as string ?? "";
+}
+
+<div class="min-h-screen bg-[#071017] text-white px-6 py-8">
+
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Encabezado -->
+        <div class="mb-8">
+
+            <a asp-controller="Fisioterapeuta"
+               asp-action="Dashboard"
+               class="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6">
+                ← Volver al dashboard
+            </a>
+
+            <h1 class="text-3xl font-bold">
+                Reportes
+            </h1>
+
+            <p class="text-gray-400 mt-2">
+                Consulta las citas realizadas y exporta el resultado.
+            </p>
+
+        </div>
+
+
+        <!-- Filtros -->
+        <div class="bg-[#0d1820] border border-gray-800 rounded-2xl p-6 mb-8">
+
+            <h2 class="text-xl font-semibold mb-5">
+                Reporte de citas
+            </h2>
+
+            <form asp-controller="Reportes"
+                  asp-action="Citas"
+                  method="get">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Fecha inicio -->
+                    <div>
+
+                        <label for="fechaInicio"
+                               class="block text-sm text-gray-300 mb-2">
+                            Fecha de inicio
+                        </label>
+
+                        <input type="date"
+                               id="fechaInicio"
+                               name="fechaInicio"
+                               value="@fechaInicio"
+                               class="w-full bg-[#071017] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400" />
+
+                    </div>
+
+
+                    <!-- Fecha fin -->
+                    <div>
+
+                        <label for="fechaFin"
+                               class="block text-sm text-gray-300 mb-2">
+                            Fecha de fin
+                        </label>
+
+                        <input type="date"
+                               id="fechaFin"
+                               name="fechaFin"
+                               value="@fechaFin"
+                               class="w-full bg-[#071017] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400" />
+
+                    </div>
+
+                </div>
+
+
+                <div class="flex flex-wrap gap-3 mt-6">
+
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-400 text-[#071017] font-bold hover:bg-cyan-300 transition">
+                        🔎 Buscar
+                    </button>
+
+                    <a asp-controller="Reportes"
+                       asp-action="Citas"
+                       class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-700 text-white font-semibold hover:bg-gray-600 transition">
+                        Limpiar filtros
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <!-- Resumen -->
+        <div class="bg-[#0d1820] border border-gray-800 rounded-2xl p-6 mb-6">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                <div>
+
+                    <p class="text-gray-400 text-sm">
+                        Citas encontradas
+                    </p>
+
+                    <p class="text-3xl font-bold mt-1">
+                        @Model.Count()
+                    </p>
+
+                </div>
+
+
+                <!-- Exportar -->
+                <a asp-controller="Reportes"
+                   asp-action="CitasCsv"
+                   asp-route-fechaInicio="@fechaInicio"
+                   asp-route-fechaFin="@fechaFin"
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-500 text-white font-bold hover:bg-green-400 transition">
+                    Exportar a Excel
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- Tabla -->
+        <div class="bg-[#0d1820] border border-gray-800 rounded-2xl overflow-hidden">
+
+            @if (Model.Any())
+            {
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-left">
+
+                        <thead class="bg-[#111f28]">
+
+                            <tr>
+
+                                <th class="px-6 py-4 text-sm font-semibold text-gray-300">
+                                    ID
+                                </th>
+
+                                <th class="px-6 py-4 text-sm font-semibold text-gray-300">
+                                    Nombre paciente
+                                </th>
+
+                                <th class="px-6 py-4 text-sm font-semibold text-gray-300">
+                                    Fecha de cita
+                                </th>
+
+                                <th class="px-6 py-4 text-sm font-semibold text-gray-300">
+                                    Estado de cita
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody class="divide-y divide-gray-800">
+
+                            @foreach (var cita in Model)
+                            {
+                                <tr class="hover:bg-[#111f28] transition">
+
+                                    <td class="px-6 py-4 text-gray-300">
+                                        @cita.Id
+                                    </td>
+
+                                    <td class="px-6 py-4 font-medium text-white">
+                                        @cita.NombrePaciente
+                                    </td>
+
+                                    <td class="px-6 py-4 text-gray-300">
+                                        @cita.FechaCita.ToString("dd/MM/yyyy")
+                                    </td>
+
+                                    <td class="px-6 py-4">
+
+                                        @if (cita.EstadoCita.Equals(
+                                                "Completada",
+                                                StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="inline-flex px-3 py-1 rounded-full text-sm bg-green-500/20 text-green-300">
+                                                Completada
+                                            </span>
+                                        }
+                                        else if (cita.EstadoCita.Equals(
+                                                    "Cancelada",
+                                                    StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="inline-flex px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-300">
+                                                Cancelada
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex px-3 py-1 rounded-full text-sm bg-yellow-500/20 text-yellow-300">
+                                                Pendiente
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="px-6 py-12 text-center">
+
+                    <div class="text-4xl mb-4">
+                        📋
+                    </div>
+
+                    <h3 class="text-xl font-semibold text-white">
+                        No se encontraron citas
+                    </h3>
+
+                    <p class="text-gray-400 mt-2">
+                        No existen citas para el período seleccionado.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

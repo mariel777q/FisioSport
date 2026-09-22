@@ -1,3 +1,4 @@
+﻿using FISIOSPORT.Services;
 using FISIOSPORT.Data;
 using FISIOSPORT.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -16,13 +17,13 @@ var connectionString =
     builder.Configuration["ConnectionStrings:DefaultConnection"];
 
 Console.WriteLine(
-    $"CONEXIÓN ENCONTRADA: {!string.IsNullOrWhiteSpace(connectionString)}"
+    $"CONEXIÃ“N ENCONTRADA: {!string.IsNullOrWhiteSpace(connectionString)}"
 );
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
-        "No se encontró ConnectionStrings:DefaultConnection."
+        "No se encontrÃ³ ConnectionStrings:DefaultConnection."
     );
 }
 
@@ -45,9 +46,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // ======================================================
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<CsvReporteService>();
 
 // ======================================================
-// AUTENTICACIÓN POR COOKIES
+// AUTENTICACIÃ“N POR COOKIES
 // ======================================================
 
 builder.Services
@@ -70,7 +72,7 @@ builder.Services
 // ======================================================
 
 // Render proporciona la variable PORT.
-// En local esta parte no modifica tu configuración.
+// En local esta parte no modifica tu configuraciÃ³n.
 var renderPort = Environment.GetEnvironmentVariable("PORT");
 
 if (!string.IsNullOrWhiteSpace(renderPort))
@@ -79,7 +81,7 @@ if (!string.IsNullOrWhiteSpace(renderPort))
         $"http://0.0.0.0:{renderPort}"
     );
 }
-
+builder.Services.AddScoped<CsvReporteService>();
 var app = builder.Build();
 
 // ======================================================
@@ -91,7 +93,7 @@ using (var scope = app.Services.CreateScope())
     var context =
         scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // Aplica automáticamente migraciones pendientes.
+    // Aplica automÃ¡ticamente migraciones pendientes.
     await context.Database.MigrateAsync();
 
     // --------------------------------------------------
@@ -105,7 +107,7 @@ using (var scope = app.Services.CreateScope())
             Nombre = "Dra. Ana Rojas",
             Correo = "ana@fisiosport.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
-            Especialidad = "Rehabilitación deportiva",
+            Especialidad = "RehabilitaciÃ³n deportiva",
             NumeroColegiado = "COL-4521"
         };
 
@@ -114,7 +116,7 @@ using (var scope = app.Services.CreateScope())
             Nombre = "Lic. Carlos Mendoza",
             Correo = "carlos@fisiosport.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
-            Especialidad = "Terapia neurológica",
+            Especialidad = "Terapia neurolÃ³gica",
             NumeroColegiado = "COL-7789"
         };
 
@@ -152,11 +154,11 @@ using (var scope = app.Services.CreateScope())
 
         var paciente3 = new Paciente
         {
-            Nombre = "Ricardo Peña",
+            Nombre = "Ricardo PeÃ±a",
             Correo = "ricardo@correo.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
             Telefono = "70033445",
-            ContactoEmergencia = "Marta Peña - 70077665"
+            ContactoEmergencia = "Marta PeÃ±a - 70077665"
         };
 
         context.Pacientes.AddRange(
@@ -198,7 +200,7 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today,
                 Hora = "09:00",
                 Estado = "Confirmada",
-                Notas = "Sesión de rodilla, segunda semana."
+                Notas = "SesiÃ³n de rodilla, segunda semana."
             },
 
             new Cita
@@ -208,7 +210,7 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today,
                 Hora = "10:30",
                 Estado = "Pendiente",
-                Notas = "Primera evaluación."
+                Notas = "Primera evaluaciÃ³n."
             },
 
             new Cita
@@ -218,7 +220,7 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today.AddDays(1),
                 Hora = "11:00",
                 Estado = "Confirmada",
-                Notas = "Continuación de terapia de hombro."
+                Notas = "ContinuaciÃ³n de terapia de hombro."
             },
 
             new Cita
@@ -228,7 +230,7 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today,
                 Hora = "15:00",
                 Estado = "Completada",
-                Notas = "Terapia neurológica, sesión 4."
+                Notas = "Terapia neurolÃ³gica, sesiÃ³n 4."
             }
         };
 
@@ -255,7 +257,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Para comprobar después que Render está funcionando.
+// Para comprobar despuÃ©s que Render estÃ¡ funcionando.
 app.MapGet("/health", () => Results.Ok("FisioSport OK"));
 
 // ======================================================

@@ -93,7 +93,7 @@ namespace FISIOSPORT.Models
         // Campo virtual para mostrar errores relacionados con el JSON de otros hallazgos
         // (no se guarda directamente desde el ViewModel; sirve para enlazar mensajes de ModelState)
         [Display(Name = "Otros hallazgos")]
-        public string OtrosHallazgos { get; set; } = string.Empty;
+        public string? OtrosHallazgos { get; set; }
 
         // =========================================================
         // ANTECEDENTES

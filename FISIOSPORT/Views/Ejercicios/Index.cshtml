@@ -1,0 +1,352 @@
+﻿@model FISIOSPORT.Models.EjerciciosIndexViewModel
+
+@{
+    ViewData["Title"] = "Ejercicios";
+
+    var tipos = new[]
+    {
+        "Isométrico",
+        "Concéntrico",
+        "Excéntrico",
+        "Pliométrico"
+    };
+
+    var objetivos = new[]
+    {
+        "Flexibilidad",
+        "Fuerza",
+        "Estabilidad",
+        "Movilidad",
+        "Readaptación"
+    };
+}
+
+<div class="mb-6">
+    <a asp-controller="Fisioterapeuta"
+       asp-action="DetalleCita"
+       asp-route-id="@Model.CitaId"
+       class="text-sm text-gray-400 hover:text-cyan-400 transition">
+        ← Volver a la cita
+    </a>
+</div>
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-white">Ejercicios</h1>
+
+    <p class="text-gray-400 mt-2">
+        Paciente:
+        <span class="text-cyan-400 font-semibold">
+            @Model.PacienteNombre
+        </span>
+    </p>
+
+    <p class="text-gray-500 text-sm">
+        @Model.FechaCita.ToString("dd/MM/yyyy") - @Model.HoraCita
+    </p>
+</div>
+
+<form asp-action="Index"
+      asp-controller="Ejercicios"
+      method="get"
+      class="mb-8">
+
+    <input type="hidden"
+           name="citaId"
+           value="@Model.CitaId" />
+
+    <div class="flex gap-3 max-w-2xl">
+
+        <input type="text"
+               name="buscar"
+               value="@Model.Buscar"
+               placeholder="Buscar ejercicio..."
+               class="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500" />
+
+        <button type="submit"
+                class="px-5 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold">
+            Buscar
+        </button>
+
+        <a asp-action="Index"
+           asp-route-citaId="@Model.CitaId"
+           class="px-5 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold">
+            Mostrar todos
+        </a>
+
+    </div>
+</form>
+
+<form asp-action="Asignar"
+      asp-controller="Ejercicios"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           asp-for="CitaId" />
+
+    <input type="hidden"
+           asp-for="PacienteNombre" />
+
+    <input type="hidden"
+           asp-for="FechaCita" />
+
+    <input type="hidden"
+           asp-for="HoraCita" />
+
+    <div class="overflow-x-auto rounded-xl border border-slate-700">
+
+        <table class="w-full border-collapse">
+
+            <thead>
+
+                <tr class="bg-slate-800">
+
+                    <th class="p-4 text-left text-gray-300 border-b border-slate-700 min-w-[180px]">
+                        Objetivo
+                    </th>
+
+                    @foreach (var tipo in tipos)
+                    {
+                        <th class="p-4 text-center text-cyan-400 border-b border-slate-700 min-w-[280px]">
+                            @tipo
+                        </th>
+                    }
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach (var objetivo in objetivos)
+                {
+                    <tr class="border-b border-slate-700">
+
+                        <td class="p-4 align-top bg-slate-900">
+
+                            <div class="font-bold text-white">
+                                @objetivo
+                            </div>
+
+                        </td>
+
+                        @foreach (var tipo in tipos)
+                        {
+                            var ejerciciosCelda = Model.Ejercicios
+                                .Where(e =>
+                                    string.Equals(
+                                        e.ObjetivoTerapeutico?.Trim(),
+                                        objetivo,
+                                        StringComparison.OrdinalIgnoreCase)
+                                    &&
+                                    string.Equals(
+                                        e.TipoContraccion?.Trim(),
+                                        tipo,
+                                        StringComparison.OrdinalIgnoreCase))
+                                .ToList();
+
+                            <td class="p-4 align-top bg-slate-950">
+
+                                @if (ejerciciosCelda.Any())
+                                {
+                                    <div class="space-y-5">
+
+                                        @foreach (var ejercicio in ejerciciosCelda)
+                                        {
+                                            var indice = Model.Ejercicios.IndexOf(ejercicio);
+
+                                            var imagen = ejercicio.Nombre switch
+                                            {
+                                                "Sentadilla" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Squat.png",
+
+                                                "Puente de glúteos" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Bridge_position.jpeg",
+
+                                                "Elevación de talones" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Standing-calf-raises-1.gif",
+
+                                                "Movilidad de tobillo" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Standing-calf-raises-1.gif",
+
+                                                "Rotación externa de hombro" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Side-plank-2.png",
+
+                                                "Retracción escapular" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Scapular_retraction_brace_FSHD_back_view.jpg",
+
+                                                "Estiramiento lumbar" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Hamstring_stretch.jpg",
+
+                                                "Estiramiento de isquiotibiales" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Hamstring_stretch.jpg",
+
+                                                "Plancha isométrica" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Plank.jpg",
+
+                                                "Elevación de pierna recta" =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Exercise_Straight_Leg_Raises.png",
+
+                                                _ =>
+                                                    "https://commons.wikimedia.org/wiki/Special:FilePath/Squat.png"
+                                            };
+
+                                            <div class="rounded-xl bg-slate-900 border border-slate-700 overflow-hidden">
+
+                                                <div class="bg-white h-44 flex items-center justify-center">
+
+                                                    <img src="@imagen"
+                                                         alt="@ejercicio.Nombre"
+                                                         class="max-h-44 max-w-full object-contain"
+                                                         loading="lazy"
+                                                         onerror="this.style.display='none';" />
+
+                                                </div>
+
+                                                <div class="p-4">
+
+                                                    <div class="flex items-start gap-3">
+
+                                                        <input type="hidden"
+                                                               name="Ejercicios[@indice].EjercicioId"
+                                                               value="@ejercicio.EjercicioId" />
+
+                                                        <input type="checkbox"
+                                                               name="Ejercicios[@indice].Seleccionado"
+                                                               value="true"
+                                                               @(ejercicio.Seleccionado ? "checked" : "")
+                                                               class="mt-1 h-5 w-5 accent-cyan-500" />
+
+                                                        <div class="flex-1">
+
+                                                            <h3 class="font-bold text-white">
+                                                                @ejercicio.Nombre
+                                                            </h3>
+
+                                                            <p class="text-sm text-gray-400 mt-1">
+                                                                @ejercicio.Descripcion
+                                                            </p>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].Nombre"
+                                                           value="@ejercicio.Nombre" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].Descripcion"
+                                                           value="@ejercicio.Descripcion" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].Instrucciones"
+                                                           value="@ejercicio.Instrucciones" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].VideoUrl"
+                                                           value="@ejercicio.VideoUrl" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].ImagenUrl"
+                                                           value="@imagen" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].TipoContraccion"
+                                                           value="@ejercicio.TipoContraccion" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].RegionAnatomica"
+                                                           value="@ejercicio.RegionAnatomica" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].ObjetivoTerapeutico"
+                                                           value="@ejercicio.ObjetivoTerapeutico" />
+
+                                                    <input type="hidden"
+                                                           name="Ejercicios[@indice].FasePaciente"
+                                                           value="@ejercicio.FasePaciente" />
+
+                                                    <div class="grid grid-cols-2 gap-3 mt-4">
+
+                                                        <div>
+                                                            <label class="block text-xs text-gray-400 mb-1">
+                                                                Series
+                                                            </label>
+
+                                                            <input type="number"
+                                                                   name="Ejercicios[@indice].Series"
+                                                                   value="@ejercicio.Series"
+                                                                   min="1"
+                                                                   max="20"
+                                                                   class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-white" />
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="block text-xs text-gray-400 mb-1">
+                                                                Repeticiones
+                                                            </label>
+
+                                                            <input type="number"
+                                                                   name="Ejercicios[@indice].Repeticiones"
+                                                                   value="@ejercicio.Repeticiones"
+                                                                   min="1"
+                                                                   max="100"
+                                                                   class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-white" />
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div class="mt-4">
+
+                                                        <label class="block text-xs text-gray-400 mb-1">
+                                                            Instrucciones personalizadas
+                                                            <span class="text-gray-600">
+                                                                (opcional)
+                                                            </span>
+                                                        </label>
+
+                                                        <textarea name="Ejercicios[@indice].InstruccionesPersonalizadas"
+                                                                  rows="2"
+                                                                  placeholder="Opcional..."
+                                                                  class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-white placeholder-gray-600">@ejercicio.InstruccionesPersonalizadas</textarea>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center text-gray-700 py-10">
+                                        Sin ejercicios
+                                    </div>
+                                }
+
+                            </td>
+                        }
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="flex justify-end mt-8">
+
+        <button type="submit"
+                class="px-8 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold shadow-lg">
+            Asignar ejercicios seleccionados
+        </button>
+
+    </div>
+
+</form>

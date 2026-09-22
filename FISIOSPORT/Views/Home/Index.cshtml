@@ -955,6 +955,61 @@
                 width: 100%;
             }
     }
+
+/* =========================================================
+   AJUSTE DE DISTRIBUCIÓN DEL INICIO
+   No modifica contenido ni diseño visual.
+   ========================================================= */
+
+.fs-hero {
+    min-height: calc(100dvh - 70px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.fs-hero .fs-container {
+    width: min(1180px, calc(100% - 40px));
+}
+
+.fs-hero-grid {
+    width: 100%;
+    align-items: center;
+}
+
+@@media (max-width: 1100px) {
+    .fs-hero {
+        min-height: calc(100dvh - 70px);
+        padding: 40px 0;
+    }
+
+    .fs-hero-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+        gap: 35px;
+    }
+}
+
+@@media (max-width: 850px) {
+    .fs-hero {
+        min-height: auto;
+        padding: 45px 0 55px;
+    }
+
+    .fs-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 35px;
+    }
+}
+
+@@media (max-width: 600px) {
+    .fs-hero {
+        padding: 35px 0 45px;
+    }
+
+    .fs-container {
+        width: min(100% - 28px, 1180px);
+    }
+}
 </style>
 
 
@@ -1768,12 +1823,7 @@
 
             <div class="fs-map">
 
-                <iframe src="https://maps.app.goo.gl/kTcytvPWvW1QPSeP7?g_st=ac"
-                        title="Ubicación de FisioSport en Google Maps"
-                        loading="lazy"
-                        allowfullscreen
-                        referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
+                <iframe src="https://www.google.com/maps?q=-17.3763202,-66.1840068&z=17&output=embed" title="Ubicación de FisioSport en Google Maps" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
 
             </div>
 
@@ -1861,3 +1911,9 @@
     </div>
 
 </footer>
+
+
+
+
+
+

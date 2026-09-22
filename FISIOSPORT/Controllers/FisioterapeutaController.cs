@@ -6,12 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System.Drawing;
-using System.Reflection.Metadata;
-using System.Security.Claims;
-using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace FISIOSPORT.Controllers
 {
@@ -21,97 +19,316 @@ namespace FISIOSPORT.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ILogger<FisioterapeutaController> _logger;
 
-        public FisioterapeutaController(ApplicationDbContext context, ILogger<FisioterapeutaController> logger)
+        public FisioterapeutaController(
+            ApplicationDbContext context,
+            ILogger<FisioterapeutaController> logger)
         {
             _context = context;
             _logger = logger;
         }
 
         private int IdActual =>
-            int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value
+            );
 
-        // Excepción usada internamente para comunicar errores de validación previa al guardado
+        // =========================================================
+        // EXCEPCIÓN DE VALIDACIÓN
+        // =========================================================
+
         private class PreSaveValidationException : Exception
         {
             public List<(string Key, string Message)> Errors { get; }
 
-            public PreSaveValidationException(List<(string Key, string Message)> errors)
+            public PreSaveValidationException(
+                List<(string Key, string Message)> errors)
             {
                 Errors = errors;
             }
         }
 
-        // Valida las entidades pendientes en ChangeTracker y devuelve una lista de errores
-        // en forma (clave, mensaje). La clave intenta coincidir con el nombre de la propiedad
-        // en el ViewModel cuando sea posible; en casos compuestos se usa el nombre de la
-        // propiedad del modelo de entidad (ej: "OtrosHallazgos").
-        private List<(string Key, string Message)> ValidatePendingEntities()
-        {
-            var errors = new List<(string Key, string Message)>();
+        // =========================================================
+        // NORMALIZAR DATETIME PARA POSTGRESQL
+        // =========================================================
 
-            var entries = _context.ChangeTracker.Entries()
-                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+        private void NormalizarDateTimesPendientes()
+        {
+            var entries = _context.ChangeTracker
+                .Entries()
+                .Where(e =>
+                    e.State == EntityState.Added ||
+                    e.State == EntityState.Modified)
                 .ToList();
 
             foreach (var entry in entries)
             {
+                foreach (var property in entry.Properties)
+                {
+                    var clrType = property.Metadata.ClrType;
+
+                    if (clrType != typeof(DateTime) &&
+                        clrType != typeof(DateTime?))
+                    {
+                        continue;
+                    }
+
+                    if (property.CurrentValue is not DateTime fecha)
+                        continue;
+
+                    var columnType =
+                        property.Metadata.GetColumnType();
+
+                    if (string.IsNullOrWhiteSpace(columnType))
+                        continue;
+
+                    // timestamp with time zone
+                    if (columnType.Contains(
+                            "timestamp with time zone",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (fecha.Kind == DateTimeKind.Utc)
+                        {
+                            continue;
+                        }
+
+                        if (fecha.Kind == DateTimeKind.Local)
+                        {
+                            property.CurrentValue =
+                                fecha.ToUniversalTime();
+                        }
+                        else
+                        {
+                            property.CurrentValue =
+                                DateTime.SpecifyKind(
+                                    fecha,
+                                    DateTimeKind.Local
+                                ).ToUniversalTime();
+                        }
+                    }
+
+                    // timestamp without time zone
+                    else if (columnType.Contains(
+                                 "timestamp without time zone",
+                                 StringComparison.OrdinalIgnoreCase))
+                    {
+                        property.CurrentValue =
+                            DateTime.SpecifyKind(
+                                fecha,
+                                DateTimeKind.Unspecified
+                            );
+                    }
+                }
+            }
+        }
+
+        // =========================================================
+        // VALIDACIÓN ANTES DE GUARDAR
+        // =========================================================
+
+        private List<(string Key, string Message)>
+            ValidatePendingEntities()
+        {
+            var errors =
+                new List<(string Key, string Message)>();
+
+            NormalizarDateTimesPendientes();
+
+            var entries =
+                _context.ChangeTracker
+                    .Entries()
+                    .Where(e =>
+                        e.State == EntityState.Added ||
+                        e.State == EntityState.Modified)
+                    .ToList();
+
+            foreach (var entry in entries)
+            {
                 var entity = entry.Entity;
-                if (entity == null) continue;
+
+                if (entity == null)
+                    continue;
 
                 var type = entity.GetType();
-                var efType = _context.Model.FindEntityType(type);
 
-                foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                var efType =
+                    _context.Model.FindEntityType(type);
+
+                foreach (
+                    var prop in type.GetProperties(
+                        BindingFlags.Public |
+                        BindingFlags.Instance))
                 {
                     var propName = prop.Name;
                     var propType = prop.PropertyType;
                     var val = prop.GetValue(entity);
 
-                    // Evitar exponer contraseñas
-                    if (propName != null && propName.ToLower().Contains("password")) continue;
-
-                    // 1) Required / NOT NULL
-                    var requiredAttr = prop.GetCustomAttribute<RequiredAttribute>();
-                    var efProp = efType?.FindProperty(propName);
-                    var isEfRequired = efProp != null && efProp.IsNullable == false;
-
-                    if ((requiredAttr != null || isEfRequired) && (val == null || (propType == typeof(string) && string.IsNullOrWhiteSpace((string)val))))
+                    // Nunca mostrar contraseñas
+                    // dentro de mensajes de error.
+                    if (propName.Contains(
+                            "password",
+                            StringComparison.OrdinalIgnoreCase))
                     {
-                        errors.Add((propName, $"{propName}: valor nulo o vacío pero es requerido en la base de datos."));
-                        continue; // ya marcado como error requerido
+                        continue;
                     }
 
-                    // 2) Strings: MaxLength
-                    if (propType == typeof(string) && val is string sVal && !string.IsNullOrEmpty(sVal))
+                    var requiredAttr =
+                        prop.GetCustomAttribute<RequiredAttribute>();
+
+                    var efProp =
+                        efType?.FindProperty(propName);
+
+                    var isEfRequired =
+                        efProp != null &&
+                        efProp.IsNullable == false;
+
+                    // =================================================
+                    // REQUIRED / NOT NULL
+                    // =================================================
+
+                    if (
+                        (requiredAttr != null ||
+                         isEfRequired) &&
+                        (
+                            val == null ||
+                            (
+                                propType == typeof(string) &&
+                                string.IsNullOrWhiteSpace(
+                                    val as string
+                                )
+                            )
+                        )
+                    )
                     {
-                        int? max = null;
+                        errors.Add(
+                            (
+                                propName,
+                                $"{propName}: valor nulo o vacío " +
+                                "pero es requerido en la base de datos."
+                            )
+                        );
 
-                        var maxAttr = prop.GetCustomAttribute<MaxLengthAttribute>();
-                        if (maxAttr != null && maxAttr.Length > 0) max = maxAttr.Length;
+                        continue;
+                    }
 
-                        var strAttr = prop.GetCustomAttribute<StringLengthAttribute>();
-                        if (strAttr != null && strAttr.MaximumLength > 0) max = max ?? strAttr.MaximumLength;
+                    // =================================================
+                    // LONGITUD DE STRINGS
+                    // =================================================
 
-                        if (max == null && efProp != null)
+                    if (
+                        propType == typeof(string) &&
+                        val is string stringValue &&
+                        !string.IsNullOrEmpty(stringValue)
+                    )
+                    {
+                        int? maxLength = null;
+
+                        var maxAttr =
+                            prop.GetCustomAttribute<
+                                MaxLengthAttribute>();
+
+                        if (
+                            maxAttr != null &&
+                            maxAttr.Length > 0)
                         {
-                            max = efProp.GetMaxLength();
+                            maxLength = maxAttr.Length;
                         }
 
-                        if (max.HasValue && sVal.Length > max.Value)
+                        var stringLengthAttr =
+                            prop.GetCustomAttribute<
+                                StringLengthAttribute>();
+
+                        if (
+                            stringLengthAttr != null &&
+                            stringLengthAttr.MaximumLength > 0)
                         {
-                            var sample = sVal.Length > 200 ? sVal.Substring(0, 200) + "..." : sVal;
-                            errors.Add((propName, $"{propName}: el contenido tiene {sVal.Length} caracteres y el máximo permitido es {max.Value}. Inicio: {sample}"));
+                            maxLength =
+                                maxLength ??
+                                stringLengthAttr.MaximumLength;
+                        }
+
+                        if (
+                            maxLength == null &&
+                            efProp != null)
+                        {
+                            maxLength =
+                                efProp.GetMaxLength();
+                        }
+
+                        if (
+                            maxLength.HasValue &&
+                            stringValue.Length >
+                            maxLength.Value)
+                        {
+                            var sample =
+                                stringValue.Length > 200
+                                    ? stringValue.Substring(
+                                        0,
+                                        200) + "..."
+                                    : stringValue;
+
+                            errors.Add(
+                                (
+                                    propName,
+                                    $"{propName}: el contenido tiene " +
+                                    $"{stringValue.Length} caracteres y " +
+                                    $"el máximo permitido es " +
+                                    $"{maxLength.Value}. " +
+                                    $"Inicio: {sample}"
+                                )
+                            );
                         }
                     }
 
-                    // 3) DateTime Kind para timestamptz
-                    if ((propType == typeof(DateTime) || propType == typeof(DateTime?)) && val != null)
+                    // =================================================
+                    // VALIDACIÓN DE DATETIME
+                    // =================================================
+
+                    if (
+                        (
+                            propType == typeof(DateTime) ||
+                            propType == typeof(DateTime?)
+                        ) &&
+                        val is DateTime fecha
+                    )
                     {
-                        var dt = (DateTime)val!;
-                        // Si la columna en EF Core es timestamptz en PG la metadata suele indicar el tipo; como aproximación comprobamos el kind
-                        if (dt.Kind != DateTimeKind.Utc)
+                        var columnType =
+                            efProp?.GetColumnType();
+
+                        if (
+                            columnType != null &&
+                            columnType.Contains(
+                                "timestamp with time zone",
+                                StringComparison.OrdinalIgnoreCase) &&
+                            fecha.Kind != DateTimeKind.Utc
+                        )
                         {
-                            errors.Add((propName, $"{propName}: DateTime.Kind debe ser Utc para almacenarse en timestamptz. Valor actual: {dt.Kind}."));
+                            errors.Add(
+                                (
+                                    propName,
+                                    $"{propName}: la columna usa " +
+                                    "timestamp with time zone y " +
+                                    "el DateTime debe ser UTC."
+                                )
+                            );
+                        }
+
+                        if (
+                            columnType != null &&
+                            columnType.Contains(
+                                "timestamp without time zone",
+                                StringComparison.OrdinalIgnoreCase) &&
+                            fecha.Kind != DateTimeKind.Unspecified
+                        )
+                        {
+                            errors.Add(
+                                (
+                                    propName,
+                                    $"{propName}: la columna usa " +
+                                    "timestamp without time zone y " +
+                                    "el DateTime debe tener Kind " +
+                                    "Unspecified."
+                                )
+                            );
                         }
                     }
                 }
@@ -126,46 +343,70 @@ namespace FISIOSPORT.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            var fisio = await _context.Fisioterapeutas
-                .FirstOrDefaultAsync(f => f.Id == IdActual);
+            var fisio =
+                await _context.Fisioterapeutas
+                    .FirstOrDefaultAsync(
+                        f => f.Id == IdActual);
 
             if (fisio == null)
-                return RedirectToAction("Login", "Account");
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account");
+            }
 
             var hoy = DateTime.Today;
 
-            var citas = await _context.Citas
-                .Include(c => c.Paciente)
-                .Where(c =>
-                    c.FisioterapeutaId == IdActual &&
-                    c.Fecha >= hoy &&
-                    c.Estado != "Completada" &&
-                    c.Estado != "Cancelada")
-                .OrderBy(c => c.Fecha)
-                .ThenBy(c => c.Hora)
-                .ToListAsync();
+            var citas =
+                await _context.Citas
+                    .Include(c => c.Paciente)
+                    .Where(c =>
+                        c.FisioterapeutaId == IdActual &&
+                        c.Fecha >= hoy &&
+                        c.Estado != "Completada" &&
+                        c.Estado != "Cancelada")
+                    .OrderBy(c => c.Fecha)
+                    .ThenBy(c => c.Hora)
+                    .ToListAsync();
 
-            var modelo = new DashboardFisioViewModel
-            {
-                Nombre = fisio.Nombre,
-                Especialidad = fisio.Especialidad,
-                NumeroColegiado = fisio.NumeroColegiado,
-
-                Citas = citas.Select(c => new CitaCardViewModel
+            var modelo =
+                new DashboardFisioViewModel
                 {
-                    Id = c.Id,
-                    NombrePaciente = c.Paciente?.Nombre ?? "Paciente",
-                    Fecha = c.Fecha,
-                    Hora = c.Hora,
-                    Estado = c.Estado
-                }).ToList()
-            };
+                    Nombre = fisio.Nombre,
+
+                    Especialidad =
+                        fisio.Especialidad,
+
+                    NumeroColegiado =
+                        fisio.NumeroColegiado,
+
+                    Citas =
+                        citas.Select(c =>
+                            new CitaCardViewModel
+                            {
+                                Id = c.Id,
+
+                                NombrePaciente =
+                                    c.Paciente?.Nombre ??
+                                    "Paciente",
+
+                                Fecha =
+                                    c.Fecha,
+
+                                Hora =
+                                    c.Hora,
+
+                                Estado =
+                                    c.Estado
+                            })
+                        .ToList()
+                };
 
             return View(modelo);
         }
 
         // =========================================================
-        // NUEVO PACIENTE
+        // NUEVO PACIENTE - GET
         // =========================================================
 
         [HttpGet]
@@ -177,16 +418,27 @@ namespace FISIOSPORT.Controllers
             );
         }
 
+        // =========================================================
+        // NUEVO PACIENTE - POST
+        // =========================================================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearPaciente(
             CrearPacienteViewModel model)
         {
             if (!ModelState.IsValid)
-                return View("RegistrarPaciente", model);
+            {
+                return View(
+                    "RegistrarPaciente",
+                    model);
+            }
 
-            var correoExiste = await _context.Pacientes
-                .AnyAsync(p => p.Correo.ToLower() == model.Correo.ToLower());
+            var correoExiste =
+                await _context.Pacientes
+                    .AnyAsync(p =>
+                        p.Correo.ToLower() ==
+                        model.Correo.ToLower());
 
             if (correoExiste)
             {
@@ -195,396 +447,543 @@ namespace FISIOSPORT.Controllers
                     "Ya existe un paciente registrado con ese correo."
                 );
 
-                return View("RegistrarPaciente", model);
+                return View(
+                    "RegistrarPaciente",
+                    model);
             }
-            var strategy = _context.Database.CreateExecutionStrategy();
+
+            var strategy =
+                _context.Database
+                    .CreateExecutionStrategy();
 
             string pacienteNombre = string.Empty;
             string expediente = string.Empty;
+
             int pacienteId = 0;
             int sesionesCount = 0;
 
             try
             {
-                await strategy.ExecuteAsync(async () =>
-                {
-                    await using var transaction =
-                        await _context.Database.BeginTransactionAsync();
-
-                    try
+                await strategy.ExecuteAsync(
+                    async () =>
                     {
-                        // -------------------------------------------------
-                        // PACIENTE
-                        // -------------------------------------------------
+                        await using var transaction =
+                            await _context.Database
+                                .BeginTransactionAsync();
 
-                        var paciente = new Paciente
+                        try
                         {
-                            Nombre = model.Nombre.Trim(),
-                            Correo = model.Correo.Trim(),
-                            PasswordHash =
-                                BCrypt.Net.BCrypt.HashPassword(model.Password),
+                            // =================================================
+                            // PACIENTE
+                            // =================================================
 
-                            Telefono = model.Telefono.Trim(),
-                            ContactoEmergencia =
-                                model.ContactoEmergencia.Trim(),
-
-                            Domicilio = model.Domicilio.Trim(),
-                            Ocupacion = model.Ocupacion.Trim(),
-                            Sexo = model.Sexo,
-                            Edad = model.Edad!.Value,
-                            EstadoCivil = model.EstadoCivil,
-                            Escolaridad = model.Escolaridad,
-
-                            Peso = model.Peso!.Value,
-                            Talla = model.Talla!.Value,
-                            Estatura = model.Estatura!.Value,
-                            Etnia = model.Etnia.Trim()
-                        };
-
-                        _context.Pacientes.Add(paciente);
-
-                        var errors = ValidatePendingEntities();
-                        if (errors.Any())
-                            throw new PreSaveValidationException(errors);
-
-                        await _context.SaveChangesAsync();
-
-                        pacienteId = paciente.Id;
-                        pacienteNombre = paciente.Nombre;
-
-                        // -------------------------------------------------
-                        // EXPEDIENTE
-                        // -------------------------------------------------
-
-                        expediente = $"FS-{paciente.Id:000000}";
-
-                        // -------------------------------------------------
-                        // DATOS ESTRUCTURADOS QUE NO NECESITAN OTRA TABLA
-                        // -------------------------------------------------
-
-                        var antecedentesJson =
-                            JsonSerializer.Serialize(
-                                new Dictionary<string, string>
+                            var paciente =
+                                new Paciente
                                 {
-                                    ["Expediente"] = expediente,
+                                    Nombre =
+                                        model.Nombre.Trim(),
 
-                                    ["Diabetes"] = SiNo(model.Diabetes),
-                                    ["EspecificacionDiabetes"] =
-                                        model.EspecificacionDiabetes,
+                                    Correo =
+                                        model.Correo.Trim(),
 
-                                    ["Alergia"] = SiNo(model.Alergia),
-                                    ["EspecificacionAlergia"] =
-                                        model.EspecificacionAlergia,
+                                    PasswordHash =
+                                        BCrypt.Net.BCrypt
+                                            .HashPassword(
+                                                model.Password),
 
-                                    ["HTA"] = SiNo(model.HTA),
-                                    ["EspecificacionHTA"] =
-                                        model.EspecificacionHTA,
+                                    Telefono =
+                                        model.Telefono.Trim(),
 
-                                    ["Cancer"] = SiNo(model.Cancer),
-                                    ["EspecificacionCancer"] =
-                                        model.EspecificacionCancer,
+                                    ContactoEmergencia =
+                                        model.ContactoEmergencia.Trim(),
 
-                                    ["Transfusiones"] =
-                                        SiNo(model.Transfusiones),
+                                    Domicilio =
+                                        model.Domicilio.Trim(),
 
-                                    ["EspecificacionTransfusiones"] =
-                                        model.EspecificacionTransfusiones,
+                                    Ocupacion =
+                                        model.Ocupacion.Trim(),
 
-                                    ["EnfermedadesReumaticas"] =
-                                        SiNo(model.EnfermedadesReumaticas),
+                                    Sexo =
+                                        model.Sexo,
 
-                                    ["EspecificacionEnfermedadesReumaticas"] =
-                                        model.EspecificacionEnfermedadesReumaticas,
+                                    Edad =
+                                        model.Edad!.Value,
 
-                                    ["Encames"] = SiNo(model.Encames),
-                                    ["EspecificacionEncames"] =
-                                        model.EspecificacionEncames,
+                                    EstadoCivil =
+                                        model.EstadoCivil,
 
-                                    ["Accidentes"] = SiNo(model.Accidentes),
-                                    ["EspecificacionAccidentes"] =
-                                        model.EspecificacionAccidentes,
+                                    Escolaridad =
+                                        model.Escolaridad,
 
-                                    ["Cardiopatias"] =
-                                        SiNo(model.Cardiopatias),
+                                    Peso =
+                                        model.Peso!.Value,
 
-                                    ["EspecificacionCardiopatias"] =
-                                        model.EspecificacionCardiopatias,
+                                    Talla =
+                                        model.Talla!.Value,
 
-                                    ["Cirugias"] = SiNo(model.Cirugias),
-                                    ["EspecificacionCirugias"] =
-                                        model.EspecificacionCirugias,
+                                    Estatura =
+                                        model.Estatura!.Value,
 
-                                    ["Fracturas"] = SiNo(model.Fracturas),
-                                    ["TipoFractura"] =
-                                        model.TipoFractura,
+                                    Etnia =
+                                        model.Etnia.Trim()
+                                };
 
-                                    ["Tabaquismo"] =
-                                        SiNo(model.Tabaquismo),
+                            _context.Pacientes.Add(
+                                paciente);
 
-                                    ["Alcoholismo"] =
-                                        SiNo(model.Alcoholismo),
+                            var errors =
+                                ValidatePendingEntities();
 
-                                    ["Drogas"] =
-                                        SiNo(model.Drogas),
+                            if (errors.Any())
+                            {
+                                throw new PreSaveValidationException(
+                                    errors);
+                            }
 
-                                    ["ActividadFisica"] =
-                                        SiNo(model.ActividadFisica),
+                            await _context.SaveChangesAsync();
 
-                                    ["SeAutomedica"] =
-                                        SiNo(model.SeAutomedica),
+                            pacienteId =
+                                paciente.Id;
 
-                                    ["Pasatiempo"] =
-                                        model.Pasatiempo,
+                            pacienteNombre =
+                                paciente.Nombre;
 
-                                    ["EstaEmbarazada"] =
-                                        SiNo(model.EstaEmbarazada),
+                            // =================================================
+                            // EXPEDIENTE
+                            // =================================================
 
-                                    ["NumeroHijos"] =
-                                        model.NumeroHijos!.Value.ToString(),
+                            expediente =
+                                $"FS-{paciente.Id:000000}";
 
-                                    ["AntecedentesGenerales"] =
-                                        model.Antecedentes
-                                }
-                            );
+                            // =================================================
+                            // ANTECEDENTES
+                            // =================================================
 
-                        var funcionalJson =
-                            JsonSerializer.Serialize(
-                                new Dictionary<string, string>
+                            var antecedentesJson =
+                                JsonSerializer.Serialize(
+                                    new Dictionary<string, string>
+                                    {
+                                        ["Expediente"] =
+                                            expediente,
+
+                                        ["Diabetes"] =
+                                            SiNo(
+                                                model.Diabetes),
+
+                                        ["EspecificacionDiabetes"] =
+                                            model.EspecificacionDiabetes,
+
+                                        ["Alergia"] =
+                                            SiNo(
+                                                model.Alergia),
+
+                                        ["EspecificacionAlergia"] =
+                                            model.EspecificacionAlergia,
+
+                                        ["HTA"] =
+                                            SiNo(
+                                                model.HTA),
+
+                                        ["EspecificacionHTA"] =
+                                            model.EspecificacionHTA,
+
+                                        ["Cancer"] =
+                                            SiNo(
+                                                model.Cancer),
+
+                                        ["EspecificacionCancer"] =
+                                            model.EspecificacionCancer,
+
+                                        ["Transfusiones"] =
+                                            SiNo(
+                                                model.Transfusiones),
+
+                                        ["EspecificacionTransfusiones"] =
+                                            model.EspecificacionTransfusiones,
+
+                                        ["EnfermedadesReumaticas"] =
+                                            SiNo(
+                                                model.EnfermedadesReumaticas),
+
+                                        ["EspecificacionEnfermedadesReumaticas"] =
+                                            model.EspecificacionEnfermedadesReumaticas,
+
+                                        ["Encames"] =
+                                            SiNo(
+                                                model.Encames),
+
+                                        ["EspecificacionEncames"] =
+                                            model.EspecificacionEncames,
+
+                                        ["Accidentes"] =
+                                            SiNo(
+                                                model.Accidentes),
+
+                                        ["EspecificacionAccidentes"] =
+                                            model.EspecificacionAccidentes,
+
+                                        ["Cardiopatias"] =
+                                            SiNo(
+                                                model.Cardiopatias),
+
+                                        ["EspecificacionCardiopatias"] =
+                                            model.EspecificacionCardiopatias,
+
+                                        ["Cirugias"] =
+                                            SiNo(
+                                                model.Cirugias),
+
+                                        ["EspecificacionCirugias"] =
+                                            model.EspecificacionCirugias,
+
+                                        ["Fracturas"] =
+                                            SiNo(
+                                                model.Fracturas),
+
+                                        ["TipoFractura"] =
+                                            model.TipoFractura,
+
+                                        ["Tabaquismo"] =
+                                            SiNo(
+                                                model.Tabaquismo),
+
+                                        ["Alcoholismo"] =
+                                            SiNo(
+                                                model.Alcoholismo),
+
+                                        ["Drogas"] =
+                                            SiNo(
+                                                model.Drogas),
+
+                                        ["ActividadFisica"] =
+                                            SiNo(
+                                                model.ActividadFisica),
+
+                                        ["SeAutomedica"] =
+                                            SiNo(
+                                                model.SeAutomedica),
+
+                                        ["Pasatiempo"] =
+                                            model.Pasatiempo,
+
+                                        ["EstaEmbarazada"] =
+                                            SiNo(
+                                                model.EstaEmbarazada),
+
+                                        ["NumeroHijos"] =
+                                            model.NumeroHijos!
+                                                .Value
+                                                .ToString(),
+
+                                        ["AntecedentesGenerales"] =
+                                            model.Antecedentes
+                                    }
+                                );
+
+                            // =================================================
+                            // DATOS FUNCIONALES
+                            // =================================================
+
+                            var funcionalJson =
+                                JsonSerializer.Serialize(
+                                    new Dictionary<string, string>
+                                    {
+                                        ["Peso"] =
+                                            model.Peso!
+                                                .Value
+                                                .ToString("0.##"),
+
+                                        ["Talla"] =
+                                            model.Talla!
+                                                .Value
+                                                .ToString("0.##"),
+
+                                        ["Estatura"] =
+                                            model.Estatura!
+                                                .Value
+                                                .ToString("0.##"),
+
+                                        ["IMC"] =
+                                            model.IMC!
+                                                .Value
+                                                .ToString("0.##"),
+
+                                        ["Etnia"] =
+                                            model.Etnia,
+
+                                        ["SitioCicatriz"] =
+                                            model.SitioCicatriz,
+
+                                        ["CicatrizQueloide"] =
+                                            SiNo(
+                                                model.CicatrizQueloide),
+
+                                        ["CicatrizRetractil"] =
+                                            SiNo(
+                                                model.CicatrizRetractil),
+
+                                        ["CicatrizAbierta"] =
+                                            SiNo(
+                                                model.CicatrizAbierta),
+
+                                        ["CicatrizConAdherencia"] =
+                                            SiNo(
+                                                model.CicatrizConAdherencia),
+
+                                        ["CicatrizHipertrofica"] =
+                                            SiNo(
+                                                model.CicatrizHipertrofica),
+
+                                        ["TrasladosValorInicial"] =
+                                            model.TrasladosValorInicial,
+
+                                        ["TrasladosValorFinal"] =
+                                            model.TrasladosValorFinal,
+
+                                        ["TrasladoIndependiente"] =
+                                            SiNo(
+                                                model.TrasladoIndependiente),
+
+                                        ["TrasladoSillaRuedas"] =
+                                            SiNo(
+                                                model.TrasladoSillaRuedas),
+
+                                        ["TrasladoConAyudas"] =
+                                            SiNo(
+                                                model.TrasladoConAyudas),
+
+                                        ["TrasladoCamilla"] =
+                                            SiNo(
+                                                model.TrasladoCamilla),
+
+                                        ["MarchaLibre"] =
+                                            SiNo(
+                                                model.MarchaLibre),
+
+                                        ["MarchaClaudicante"] =
+                                            SiNo(
+                                                model.MarchaClaudicante),
+
+                                        ["MarchaConAyuda"] =
+                                            SiNo(
+                                                model.MarchaConAyuda),
+
+                                        ["MarchaEspastica"] =
+                                            SiNo(
+                                                model.MarchaEspastica),
+
+                                        ["MarchaAtaxica"] =
+                                            SiNo(
+                                                model.MarchaAtaxica),
+
+                                        ["MarchaOtros"] =
+                                            SiNo(
+                                                model.MarchaOtros),
+
+                                        ["ObservacionesMarcha"] =
+                                            model.ObservacionesMarcha
+                                    }
+                                );
+
+                            // =================================================
+                            // HISTORIA CLÍNICA
+                            // =================================================
+
+                            var consulta =
+                                new ConsultaClinica
                                 {
-                                    ["Peso"] =
-                                        model.Peso!.Value.ToString("0.##"),
+                                    PacienteId =
+                                        paciente.Id,
 
-                                    ["Talla"] =
-                                        model.Talla!.Value.ToString("0.##"),
+                                    FisioterapeutaId =
+                                        IdActual,
 
-                                    ["Estatura"] =
-                                        model.Estatura!.Value.ToString("0.##"),
+                                    FechaConsulta =
+                                        DateTime.UtcNow,
 
-                                    ["IMC"] =
-                                        model.IMC!.Value.ToString("0.##"),
+                                    Antecedentes =
+                                        antecedentesJson,
 
-                                    ["Etnia"] =
-                                        model.Etnia,
+                                    Alergias =
+                                        model.Alergias,
 
-                                    ["SitioCicatriz"] =
-                                        model.SitioCicatriz,
+                                    MotivoConsulta =
+                                        model.MotivoConsulta,
 
-                                    ["CicatrizQueloide"] =
-                                        SiNo(model.CicatrizQueloide),
+                                    Observaciones =
+                                        model.Observaciones,
 
-                                    ["CicatrizRetractil"] =
-                                        SiNo(model.CicatrizRetractil),
+                                    TratamientosPrevios =
+                                        model.TratamientosPrevios,
 
-                                    ["CicatrizAbierta"] =
-                                        SiNo(model.CicatrizAbierta),
+                                    DiagnosticoMedico =
+                                        model.DiagnosticoMedicoRehabilitacion,
 
-                                    ["CicatrizConAdherencia"] =
-                                        SiNo(model.CicatrizConAdherencia),
+                                    Reflejos =
+                                        model.Reflejos,
 
-                                    ["CicatrizHipertrofica"] =
-                                        SiNo(model.CicatrizHipertrofica),
+                                    Sensibilidad =
+                                        model.Sensibilidad,
 
-                                    ["TrasladosValorInicial"] =
-                                        model.TrasladosValorInicial,
+                                    LenguajeOrientacion =
+                                        model.LenguajeOrientacion,
 
-                                    ["TrasladosValorFinal"] =
-                                        model.TrasladosValorFinal,
+                                    OtrosHallazgos =
+                                        funcionalJson,
 
-                                    ["TrasladoIndependiente"] =
-                                        SiNo(model.TrasladoIndependiente),
+                                    SignosVitales =
+                                        $"T/A: {model.TA} | " +
+                                        $"TEMP: {model.Temperatura:0.##} °C | " +
+                                        $"FC: {model.FC} lpm | " +
+                                        $"FR: {model.FR} rpm",
 
-                                    ["TrasladoSillaRuedas"] =
-                                        SiNo(model.TrasladoSillaRuedas),
+                                    EspasmosContractura =
+                                        model.EspasmosContracturaMuscular,
 
-                                    ["TrasladoConAyudas"] =
-                                        SiNo(model.TrasladoConAyudas),
+                                    DiagnosticoRehabilitacion =
+                                        model.DiagnosticoMedicoRehabilitacion,
 
-                                    ["TrasladoCamilla"] =
-                                        SiNo(model.TrasladoCamilla),
+                                    CicatrizQuirurgica =
+                                        $"Sitio: {model.SitioCicatriz}",
 
-                                    ["MarchaLibre"] =
-                                        SiNo(model.MarchaLibre),
+                                    Movilidad =
+                                        $"Inicial: {model.TrasladosValorInicial} | " +
+                                        $"Final: {model.TrasladosValorFinal}",
 
-                                    ["MarchaClaudicante"] =
-                                        SiNo(model.MarchaClaudicante),
+                                    Marcha =
+                                        model.ObservacionesMarcha,
 
-                                    ["MarchaConAyuda"] =
-                                        SiNo(model.MarchaConAyuda),
+                                    EscalaDolor =
+                                        model.EscalaDolor!.Value
+                                };
 
-                                    ["MarchaEspastica"] =
-                                        SiNo(model.MarchaEspastica),
+                            _context.ConsultasClinicas.Add(
+                                consulta);
 
-                                    ["MarchaAtaxica"] =
-                                        SiNo(model.MarchaAtaxica),
+                            // =================================================
+                            // TRATAMIENTO
+                            // =================================================
 
-                                    ["MarchaOtros"] =
-                                        SiNo(model.MarchaOtros),
-
-                                    ["ObservacionesMarcha"] =
-                                        model.ObservacionesMarcha
-                                }
-                            );
-
-                        // ----------------
-
-                        // HISTORIA CLÍNICA
-                        // ----------------
-
-                        var consulta = new ConsultaClinica
-                        {
-                            PacienteId = paciente.Id,
-                            FisioterapeutaId = IdActual,
-                            FechaConsulta = DateTime.UtcNow,
-
-                            Antecedentes = antecedentesJson,
-
-                            Alergias = model.Alergias,
-
-                            MotivoConsulta = model.MotivoConsulta,
-
-                            Observaciones = model.Observaciones,
-
-                            TratamientosPrevios =
-                                model.TratamientosPrevios,
-
-                            DiagnosticoMedico =
-                                model.DiagnosticoMedicoRehabilitacion,
-
-                            Reflejos = model.Reflejos,
-
-                            Sensibilidad = model.Sensibilidad,
-
-                            LenguajeOrientacion =
-                                model.LenguajeOrientacion,
-
-                            OtrosHallazgos = funcionalJson,
-
-                            SignosVitales =
-                                $"T/A: {model.TA} | " +
-                                $"TEMP: {model.Temperatura:0.##} °C | " +
-                                $"FC: {model.FC} lpm | " +
-                                $"FR: {model.FR} rpm",
-
-                            EspasmosContractura =
-                                model.EspasmosContracturaMuscular,
-
-                            DiagnosticoRehabilitacion =
-                                model.DiagnosticoMedicoRehabilitacion,
-
-                            CicatrizQuirurgica =
-                                $"Sitio: {model.SitioCicatriz}",
-
-                            Movilidad =
-                                $"Inicial: {model.TrasladosValorInicial} | " +
-                                $"Final: {model.TrasladosValorFinal}",
-
-                            Marcha =
-                                model.ObservacionesMarcha,
-
-                            EscalaDolor =
-                                model.EscalaDolor!.Value
-                        };
-
-                        _context.ConsultasClinicas.Add(consulta);
-
-                        // -------------------------------------------------
-                        // TRATAMIENTO
-                        // -------------------------------------------------
-
-                        var tratamiento = new Tratamiento
-                        {
-                            PacienteId = paciente.Id,
-                            FisioterapeutaId = IdActual,
-
-                            MotivoConsulta =
-                                model.MotivoConsulta.Length > 250
-                                    ? model.MotivoConsulta[..250]
-                                    : model.MotivoConsulta,
-
-                            Diagnostico =
-                                model.DiagnosticoMedicoRehabilitacion.Length > 250
-                                    ? model.DiagnosticoMedicoRehabilitacion[..250]
-                                    : model.DiagnosticoMedicoRehabilitacion,
-
-                            Descripcion =
-                                "Plan de rehabilitación fisioterapéutica inicial.",
-
-                            TotalSesiones =
-                                model.TotalSesiones!.Value,
-
-                            FechaInicio = DateTime.UtcNow.Date,
-
-                            Estado = "Activo"
-                        };
-
-
-                        _context.Tratamientos.Add(tratamiento);
-
-                        var errors2 = ValidatePendingEntities();
-                        if (errors2.Any())
-                            throw new PreSaveValidationException(errors2);
-
-                        await _context.SaveChangesAsync();
-
-                        // -------------------------------------------------
-                        // SESIONES
-                        // -------------------------------------------------
-
-                        for (
-                            int numeroSesion = 1;
-                            numeroSesion <= tratamiento.TotalSesiones;
-                            numeroSesion++
-                        )
-                        {
-                            _context.SesionesTratamiento.Add(
-                                new SesionTratamiento
+                            var tratamiento =
+                                new Tratamiento
                                 {
-                                    TratamientoId = tratamiento.Id,
+                                    PacienteId =
+                                        paciente.Id,
 
-                                    NumeroSesion = numeroSesion,
+                                    FisioterapeutaId =
+                                        IdActual,
 
-                                    TrabajoPlanificado =
-                                        $"Sesión {numeroSesion} del tratamiento.",
+                                    MotivoConsulta =
+                                        model.MotivoConsulta.Length > 250
+                                            ? model.MotivoConsulta[..250]
+                                            : model.MotivoConsulta,
 
-                                    Observaciones = string.Empty,
+                                    Diagnostico =
+                                        model.DiagnosticoMedicoRehabilitacion
+                                            .Length > 250
+                                            ? model.DiagnosticoMedicoRehabilitacion
+                                                [..250]
+                                            : model.DiagnosticoMedicoRehabilitacion,
 
-                                    Estado = "Pendiente"
-                                }
-                            );
+                                    Descripcion =
+                                        "Plan de rehabilitación fisioterapéutica inicial.",
+
+                                    TotalSesiones =
+                                        model.TotalSesiones!.Value,
+
+                                    FechaInicio =
+                                        DateTime.UtcNow.Date,
+
+                                    Estado =
+                                        "Activo"
+                                };
+
+                            _context.Tratamientos.Add(
+                                tratamiento);
+
+                            var errors2 =
+                                ValidatePendingEntities();
+
+                            if (errors2.Any())
+                            {
+                                throw new PreSaveValidationException(
+                                    errors2);
+                            }
+
+                            await _context.SaveChangesAsync();
+
+                            // =================================================
+                            // SESIONES
+                            // =================================================
+
+                            for (
+                                int numeroSesion = 1;
+                                numeroSesion <=
+                                tratamiento.TotalSesiones;
+                                numeroSesion++)
+                            {
+                                _context.SesionesTratamiento.Add(
+                                    new SesionTratamiento
+                                    {
+                                        TratamientoId =
+                                            tratamiento.Id,
+
+                                        NumeroSesion =
+                                            numeroSesion,
+
+                                        TrabajoPlanificado =
+                                            $"Sesión {numeroSesion} del tratamiento.",
+
+                                        Observaciones =
+                                            "Sin observaciones",
+
+                                        Estado =
+                                            "Pendiente",
+
+                                        FechaCompletada =
+                                            null
+                                    }
+                                );
+                            }
+
+                            var errors3 =
+                                ValidatePendingEntities();
+
+                            if (errors3.Any())
+                            {
+                                throw new PreSaveValidationException(
+                                    errors3);
+                            }
+
+                            await _context.SaveChangesAsync();
+
+                            sesionesCount =
+                                tratamiento.TotalSesiones;
+
+                            await transaction.CommitAsync();
                         }
-
-                        var errors3 = ValidatePendingEntities();
-                        if (errors3.Any())
-                            throw new PreSaveValidationException(errors3);
-
-                        await _context.SaveChangesAsync();
-
-                        sesionesCount = tratamiento.TotalSesiones;
-
-                        await transaction.CommitAsync();
-                    }
-                    catch (PreSaveValidationException pvex)
-                    {
-                        // Convertir errores estructurados a ModelState y lanzar para manejar fuera
-                        foreach (var (key, message) in pvex.Errors)
+                        catch (PreSaveValidationException pvex)
                         {
-                            // Si la clave corresponde a una propiedad de entidad que no existe en el ViewModel
-                            // mapeamos el error al campo virtual 'OtrosHallazgos' cuando proceda.
-                            var modelKey = key;
-                            if (modelKey == "OtrosHallazgos") modelKey = "OtrosHallazgos"; // coincide con la propiedad añadida al ViewModel
+                            foreach (
+                                var (key, message)
+                                in pvex.Errors)
+                            {
+                                ModelState.AddModelError(
+                                    key,
+                                    message);
+                            }
 
-                            ModelState.AddModelError(modelKey, message);
+                            await transaction.RollbackAsync();
+
+                            throw;
                         }
+                        catch
+                        {
+                            await transaction.RollbackAsync();
 
-                        await transaction.RollbackAsync();
-                        throw;
-                    }
-                    catch
-                    {
-                        await transaction.RollbackAsync();
-                        throw;
-                    }
-                });
+                            throw;
+                        }
+                    });
 
                 TempData["MensajeExito"] =
                     $"Paciente {pacienteNombre} registrado correctamente. " +
@@ -593,60 +992,95 @@ namespace FISIOSPORT.Controllers
 
                 return RedirectToAction(
                     nameof(CrearCita),
-                    new { pacienteId = pacienteId }
+                    new
+                    {
+                        pacienteId = pacienteId
+                    }
                 );
             }
             catch (Exception ex)
             {
-                // Log full exception
-                try { _logger?.LogError(ex, "Error al guardar paciente"); } catch { }
+                try
+                {
+                    _logger.LogError(
+                        ex,
+                        "Error al guardar paciente");
+                }
+                catch
+                {
+                }
 
-                var message = ex.ToString();
-                if (ex is DbUpdateException && ex.InnerException != null)
-                    message = ex.InnerException.ToString();
+                var message =
+                    ex.ToString();
 
-                ModelState.AddModelError("", message);
+                if (
+                    ex is DbUpdateException &&
+                    ex.InnerException != null)
+                {
+                    message =
+                        ex.InnerException.ToString();
+                }
 
-                return View("RegistrarPaciente", model);
+                ModelState.AddModelError(
+                    "",
+                    message);
+
+                return View(
+                    "RegistrarPaciente",
+                    model);
             }
         }
 
-        // Mantiene funcionando la ruta antigua.
+        // =========================================================
+        // RUTA ANTIGUA
+        // =========================================================
+
         [HttpGet]
         public IActionResult RegistrarPaciente()
         {
-            return RedirectToAction(nameof(Dashboard));
+            return RedirectToAction(
+                nameof(Dashboard));
         }
 
         // =========================================================
-        // NUEVA CITA
+        // NUEVA CITA - GET
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> CrearCita(int? pacienteId)
+        public async Task<IActionResult> CrearCita(
+            int? pacienteId)
         {
             var pacientes =
                 await _context.Pacientes
                     .OrderBy(p => p.Nombre)
                     .ToListAsync();
 
-            var modelo = new CrearCitaViewModel
-            {
-                PacientesDisponibles = pacientes,
-                PacienteId = pacienteId ?? 0,
-                Fecha = DateTime.Today
-            };
+            var modelo =
+                new CrearCitaViewModel
+                {
+                    PacientesDisponibles =
+                        pacientes,
+
+                    PacienteId =
+                        pacienteId ?? 0,
+
+                    Fecha =
+                        DateTime.Today
+                };
 
             if (pacienteId.HasValue)
             {
                 await CargarHistoriaPaciente(
                     modelo,
-                    pacienteId.Value
-                );
+                    pacienteId.Value);
             }
 
             return View(modelo);
         }
+
+        // =========================================================
+        // NUEVA CITA - POST
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -662,23 +1096,21 @@ namespace FISIOSPORT.Controllers
 
                 await CargarHistoriaPaciente(
                     model,
-                    model.PacienteId
-                );
+                    model.PacienteId);
 
                 return View(model);
             }
 
-            var paciente = await _context.Pacientes
-                .FirstOrDefaultAsync(
-                    p => p.Id == model.PacienteId
-                );
+            var paciente =
+                await _context.Pacientes
+                    .FirstOrDefaultAsync(
+                        p => p.Id == model.PacienteId);
 
             if (paciente == null)
             {
                 ModelState.AddModelError(
                     "PacienteId",
-                    "Paciente no encontrado."
-                );
+                    "Paciente no encontrado.");
 
                 model.PacientesDisponibles =
                     await _context.Pacientes
@@ -688,9 +1120,9 @@ namespace FISIOSPORT.Controllers
                 return View(model);
             }
 
-            // -------------------------------------------------
-            // BUSCAR LA SIGUIENTE SESIÓN PENDIENTE
-            // -------------------------------------------------
+            // =================================================
+            // SIGUIENTE SESIÓN PENDIENTE
+            // =================================================
 
             var siguienteSesion =
                 await _context.SesionesTratamiento
@@ -705,43 +1137,58 @@ namespace FISIOSPORT.Controllers
                         s.Estado != "Completada" &&
 
                         !_context.Citas.Any(c =>
-                            c.SesionTratamientoId == s.Id &&
+                            c.SesionTratamientoId ==
+                            s.Id &&
+
                             c.Estado != "Completada" &&
+
                             c.Estado != "Cancelada")
                     )
                     .OrderBy(s => s.TratamientoId)
                     .ThenBy(s => s.NumeroSesion)
                     .FirstOrDefaultAsync();
 
-            var cita = new Cita
-            {
-                FisioterapeutaId = IdActual,
+            var cita =
+                new Cita
+                {
+                    FisioterapeutaId =
+                        IdActual,
 
-                PacienteId = paciente.Id,
+                    PacienteId =
+                        paciente.Id,
 
-                SesionTratamientoId =
-                    siguienteSesion?.Id,
+                    SesionTratamientoId =
+                        siguienteSesion?.Id,
 
-                Fecha = model.Fecha,
+                    Fecha =
+                        model.Fecha,
 
-                Hora = model.Hora,
+                    Hora =
+                        model.Hora,
 
-                Estado = "Pendiente",
+                    Estado =
+                        "Pendiente",
 
-                Notas = model.Notas?.Trim() ?? string.Empty
-            };
+                    Notas =
+                        model.Notas?.Trim() ??
+                        string.Empty
+                };
 
             _context.Citas.Add(cita);
+
+            NormalizarDateTimesPendientes();
 
             await _context.SaveChangesAsync();
 
             TempData["MensajeExito"] =
                 siguienteSesion != null
                     ? $"Cita creada correctamente para {paciente.Nombre}. " +
-                      $"Corresponde a la sesión {siguienteSesion.NumeroSesion}."
+                      $"Corresponde a la sesión " +
+                      $"{siguienteSesion.NumeroSesion}."
                     : $"Cita creada correctamente para {paciente.Nombre}.";
 
-            return RedirectToAction(nameof(Dashboard));
+            return RedirectToAction(
+                nameof(Dashboard));
         }
 
         // =========================================================
@@ -749,26 +1196,32 @@ namespace FISIOSPORT.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> DetalleCita(int id)
+        public async Task<IActionResult> DetalleCita(
+            int id)
         {
-            var cita = await _context.Citas
-                .Include(c => c.Paciente)
-                .Include(c => c.SesionTratamiento)
-                .FirstOrDefaultAsync(c =>
-                    c.Id == id &&
-                    c.FisioterapeutaId == IdActual
-                );
+            var cita =
+                await _context.Citas
+                    .Include(c => c.Paciente)
+                    .Include(c => c.SesionTratamiento)
+                    .FirstOrDefaultAsync(c =>
+                        c.Id == id &&
+                        c.FisioterapeutaId == IdActual);
 
             if (cita == null)
                 return NotFound();
 
-            var consulta = await _context.ConsultasClinicas
-                .Include(c => c.Fisioterapeuta)
-                .Where(c =>
-                    c.PacienteId == cita.PacienteId &&
-                    c.FisioterapeutaId == IdActual)
-                .OrderByDescending(c => c.FechaConsulta)
-                .FirstOrDefaultAsync();
+            var consulta =
+                await _context.ConsultasClinicas
+                    .Include(c => c.Fisioterapeuta)
+                    .Where(c =>
+                        c.PacienteId ==
+                        cita.PacienteId &&
+
+                        c.FisioterapeutaId ==
+                        IdActual)
+                    .OrderByDescending(
+                        c => c.FechaConsulta)
+                    .FirstOrDefaultAsync();
 
             Tratamiento? tratamiento = null;
 
@@ -779,7 +1232,8 @@ namespace FISIOSPORT.Controllers
                         .Include(t => t.Sesiones)
                         .FirstOrDefaultAsync(t =>
                             t.Id ==
-                            cita.SesionTratamiento.TratamientoId);
+                            cita.SesionTratamiento
+                                .TratamientoId);
             }
 
             if (tratamiento == null)
@@ -788,47 +1242,62 @@ namespace FISIOSPORT.Controllers
                     await _context.Tratamientos
                         .Include(t => t.Sesiones)
                         .Where(t =>
-                            t.PacienteId == cita.PacienteId &&
-                            t.FisioterapeutaId == IdActual &&
-                            t.Estado == "Activo")
-                        .OrderByDescending(t => t.FechaInicio)
+                            t.PacienteId ==
+                            cita.PacienteId &&
+
+                            t.FisioterapeutaId ==
+                            IdActual &&
+
+                            t.Estado ==
+                            "Activo")
+                        .OrderByDescending(
+                            t => t.FechaInicio)
                         .FirstOrDefaultAsync();
             }
 
-            var modelo = new DetalleCitaViewModel
-            {
-                CitaId = cita.Id,
+            var modelo =
+                new DetalleCitaViewModel
+                {
+                    CitaId =
+                        cita.Id,
 
-                NombrePaciente =
-                    cita.Paciente?.Nombre ?? "Paciente",
+                    NombrePaciente =
+                        cita.Paciente?.Nombre ??
+                        "Paciente",
 
-                CorreoPaciente =
-                    cita.Paciente?.Correo ?? string.Empty,
+                    CorreoPaciente =
+                        cita.Paciente?.Correo ??
+                        string.Empty,
 
-                TelefonoPaciente =
-                    cita.Paciente?.Telefono ?? string.Empty,
+                    TelefonoPaciente =
+                        cita.Paciente?.Telefono ??
+                        string.Empty,
 
-                Fecha = cita.Fecha,
+                    Fecha =
+                        cita.Fecha,
 
-                Hora = cita.Hora,
+                    Hora =
+                        cita.Hora,
 
-                EstadoCita = cita.Estado,
+                    EstadoCita =
+                        cita.Estado,
 
-                Historia =
-                    consulta != null && cita.Paciente != null
-                        ? ConstruirHistoria(
-                            cita.Paciente,
-                            consulta)
-                        : new(),
+                    Historia =
+                        consulta != null &&
+                        cita.Paciente != null
+                            ? ConstruirHistoria(
+                                cita.Paciente,
+                                consulta)
+                            : new(),
 
-                FechaHistoria =
-                    consulta?.FechaConsulta,
+                    FechaHistoria =
+                        consulta?.FechaConsulta,
 
-                Expediente =
-                    cita.Paciente != null
-                        ? $"FS-{cita.Paciente.Id:000000}"
-                        : string.Empty
-            };
+                    Expediente =
+                        cita.Paciente != null
+                            ? $"FS-{cita.Paciente.Id:000000}"
+                            : string.Empty
+                };
 
             if (consulta != null)
             {
@@ -852,70 +1321,76 @@ namespace FISIOSPORT.Controllers
 
                 var sesiones =
                     tratamiento.Sesiones
-                        .OrderBy(s => s.NumeroSesion)
+                        .OrderBy(s =>
+                            s.NumeroSesion)
                         .ToList();
 
                 modelo.Sesiones =
-                    sesiones.Select(s =>
-                        new SesionDetalleViewModel
-                        {
-                            Id = s.Id,
+                    sesiones
+                        .Select(s =>
+                            new SesionDetalleViewModel
+                            {
+                                Id =
+                                    s.Id,
 
-                            NumeroSesion =
-                                s.NumeroSesion,
+                                NumeroSesion =
+                                    s.NumeroSesion,
 
-                            TrabajoPlanificado =
-                                s.TrabajoPlanificado,
+                                TrabajoPlanificado =
+                                    s.TrabajoPlanificado,
 
-                            Observaciones =
-                                s.Observaciones,
+                                Observaciones =
+                                    s.Observaciones,
 
-                            FechaCompletada =
-                                s.FechaCompletada,
+                                FechaCompletada =
+                                    s.FechaCompletada,
 
-                            Estado =
-                                s.Estado,
+                                Estado =
+                                    s.Estado,
 
-                            EstaCompletada =
-                                s.Estado == "Completada",
+                                EstaCompletada =
+                                    s.Estado ==
+                                    "Completada",
 
-                            EsSesionActual =
-                                cita.SesionTratamientoId ==
-                                s.Id
-                        })
+                                EsSesionActual =
+                                    cita.SesionTratamientoId ==
+                                    s.Id
+                            })
                         .ToList();
 
                 SesionTratamiento? siguiente = null;
 
-                // Primero intentamos obtener la sesión específica
-                // que está vinculada a esta cita.
+                // Primero: sesión vinculada a la cita.
                 if (cita.SesionTratamientoId.HasValue)
                 {
-                    siguiente = sesiones.FirstOrDefault(
-                        s => s.Id == cita.SesionTratamientoId.Value
-                    );
+                    siguiente =
+                        sesiones.FirstOrDefault(
+                            s =>
+                                s.Id ==
+                                cita.SesionTratamientoId.Value);
                 }
 
-                // Si por alguna razón la cita no tiene sesión vinculada,
-                // buscamos la primera sesión pendiente.
+                // Si no existe, primera pendiente.
                 if (siguiente == null)
                 {
-                    siguiente = sesiones.FirstOrDefault(
-                        s => s.Estado != "Completada"
-                    );
+                    siguiente =
+                        sesiones.FirstOrDefault(
+                            s =>
+                                s.Estado !=
+                                "Completada");
                 }
 
                 modelo.SesionesCompletadas =
                     sesiones.Count(
-                        s => s.Estado == "Completada"
-                    );
+                        s =>
+                            s.Estado ==
+                            "Completada");
 
                 modelo.SesionesRestantes =
                     Math.Max(
                         0,
                         tratamiento.TotalSesiones -
-                        modelo.SesionesCompletadas
-                    );
+                        modelo.SesionesCompletadas);
 
                 modelo.PorcentajeProgreso =
                     tratamiento.TotalSesiones > 0
@@ -955,22 +1430,24 @@ namespace FISIOSPORT.Controllers
             int citaId,
             string? observaciones)
         {
-            var cita = await _context.Citas
-                .FirstOrDefaultAsync(c =>
-                    c.Id == citaId &&
-                    c.FisioterapeutaId == IdActual);
+            var cita =
+                await _context.Citas
+                    .FirstOrDefaultAsync(c =>
+                        c.Id == citaId &&
+                        c.FisioterapeutaId == IdActual);
 
             if (cita == null)
                 return NotFound();
 
-            var sesion = await _context.SesionesTratamiento
-                .Include(s => s.Tratamiento)
-                .FirstOrDefaultAsync(s =>
-                    s.Id == sesionId &&
-                    s.Tratamiento!.PacienteId ==
-                    cita.PacienteId &&
-                    s.Tratamiento.FisioterapeutaId ==
-                    IdActual);
+            var sesion =
+                await _context.SesionesTratamiento
+                    .Include(s => s.Tratamiento)
+                    .FirstOrDefaultAsync(s =>
+                        s.Id == sesionId &&
+                        s.Tratamiento!.PacienteId ==
+                            cita.PacienteId &&
+                        s.Tratamiento.FisioterapeutaId ==
+                            IdActual);
 
             if (sesion == null)
                 return NotFound();
@@ -980,18 +1457,56 @@ namespace FISIOSPORT.Controllers
                 TempData["MensajeExito"] =
                     "Esta sesión ya estaba completada.";
 
-                return RedirectToAction(nameof(Dashboard));
+                return RedirectToAction(
+                    nameof(Dashboard));
             }
 
-            sesion.Observaciones =
-                observaciones?.Trim() ?? string.Empty;
+            // =================================================
+            // OBSERVACIONES
+            // =================================================
 
-            sesion.Estado = "Completada";
+            if (string.IsNullOrWhiteSpace(observaciones))
+            {
+                sesion.Observaciones =
+                    "Sin observaciones";
+            }
+            else
+            {
+                sesion.Observaciones =
+                    observaciones.Trim();
+            }
+
+            // =================================================
+            // ESTADO DE LA SESIÓN
+            // =================================================
+
+            sesion.Estado =
+                "Completada";
+
+            // =================================================
+            // FECHA DE COMPLETADO
+            // =================================================
+            //
+            // Esta columna es timestamp without time zone.
+            // Por eso usamos Unspecified.
+            // =================================================
 
             sesion.FechaCompletada =
-                DateTime.UtcNow;
+                DateTime.SpecifyKind(
+                    DateTime.Now,
+                    DateTimeKind.Unspecified
+                );
 
-            cita.Estado = "Completada";
+            // =================================================
+            // ESTADO DE LA CITA
+            // =================================================
+
+            cita.Estado =
+                "Completada";
+
+            // =================================================
+            // COMPROBAR SI TERMINÓ EL TRATAMIENTO
+            // =================================================
 
             if (sesion.Tratamiento != null)
             {
@@ -1000,7 +1515,9 @@ namespace FISIOSPORT.Controllers
                         .CountAsync(s =>
                             s.TratamientoId ==
                             sesion.Tratamiento.Id &&
-                            s.Estado != "Completada");
+
+                            s.Estado !=
+                            "Completada");
 
                 if (pendientes == 0)
                 {
@@ -1009,12 +1526,53 @@ namespace FISIOSPORT.Controllers
                 }
             }
 
+            // =================================================
+            // NORMALIZAR DATETIME
+            // =================================================
+
+            NormalizarDateTimesPendientes();
+
+            // =================================================
+            // VALIDAR
+            // =================================================
+
+            var errors =
+                ValidatePendingEntities();
+
+            if (errors.Any())
+            {
+                foreach (
+                    var (key, message)
+                    in errors)
+                {
+                    ModelState.AddModelError(
+                        key,
+                        message);
+                }
+
+                TempData["MensajeError"] =
+                    "No se pudo completar la sesión porque " +
+                    "hay datos que no cumplen las reglas de la base de datos.";
+
+                return RedirectToAction(
+                    nameof(DetalleCita),
+                    new
+                    {
+                        id = citaId
+                    });
+            }
+
+            // =================================================
+            // GUARDAR
+            // =================================================
+
             await _context.SaveChangesAsync();
 
             TempData["MensajeExito"] =
                 "Sesión completada con éxito.";
 
-            return RedirectToAction(nameof(Dashboard));
+            return RedirectToAction(
+                nameof(Dashboard));
         }
 
         // =========================================================
@@ -1022,8 +1580,9 @@ namespace FISIOSPORT.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> DescargarHistoriaClinica(
-            int pacienteId)
+        public async Task<IActionResult>
+            DescargarHistoriaClinica(
+                int pacienteId)
         {
             var paciente =
                 await _context.Pacientes
@@ -1037,9 +1596,13 @@ namespace FISIOSPORT.Controllers
                 await _context.ConsultasClinicas
                     .Include(c => c.Fisioterapeuta)
                     .Where(c =>
-                        c.PacienteId == pacienteId &&
-                        c.FisioterapeutaId == IdActual)
-                    .OrderByDescending(c => c.FechaConsulta)
+                        c.PacienteId ==
+                        pacienteId &&
+
+                        c.FisioterapeutaId ==
+                        IdActual)
+                    .OrderByDescending(
+                        c => c.FechaConsulta)
                     .FirstOrDefaultAsync();
 
             if (consulta == null)
@@ -1071,18 +1634,29 @@ namespace FISIOSPORT.Controllers
                     ["IMC"] = "IMC",
                     ["Etnia"] = "Etnia",
 
-                    ["MotivoConsulta"] = "Motivo de consulta",
-                    ["TratamientosPrevios"] = "Tratamientos previos",
+                    ["MotivoConsulta"] =
+                        "Motivo de consulta",
+
+                    ["TratamientosPrevios"] =
+                        "Tratamientos previos",
 
                     ["Diabetes"] = "Diabetes",
                     ["Alergia"] = "Alergia",
                     ["HTA"] = "HTA",
                     ["Cancer"] = "Cáncer",
-                    ["Transfusiones"] = "Transfusiones",
-                    ["EnfermedadesReumaticas"] = "Enfermedades reumáticas",
+
+                    ["Transfusiones"] =
+                        "Transfusiones",
+
+                    ["EnfermedadesReumaticas"] =
+                        "Enfermedades reumáticas",
+
                     ["Encames"] = "Encames",
                     ["Accidentes"] = "Accidentes",
-                    ["Cardiopatias"] = "Cardiopatías",
+
+                    ["Cardiopatias"] =
+                        "Cardiopatías",
+
                     ["Cirugias"] = "Cirugías",
                     ["Fracturas"] = "Fracturas",
 
@@ -1090,32 +1664,61 @@ namespace FISIOSPORT.Controllers
                     ["Temperatura"] = "Temperatura",
                     ["FC"] = "FC",
                     ["FR"] = "FR",
+
                     ["EspasmosContractura"] =
                         "Espasmos / contractura muscular",
 
                     ["Tabaquismo"] = "Tabaquismo",
                     ["Alcoholismo"] = "Alcoholismo",
                     ["Drogas"] = "Drogas",
-                    ["ActividadFisica"] = "Actividad física",
-                    ["SeAutomedica"] = "Se automedica",
-                    ["Pasatiempo"] = "Pasatiempo",
 
-                    ["EstaEmbarazada"] = "Embarazo",
-                    ["NumeroHijos"] = "Número de hijos",
+                    ["ActividadFisica"] =
+                        "Actividad física",
 
-                    ["Diagnostico"] = "Diagnóstico médico en rehabilitación",
-                    ["Reflejos"] = "Reflejos",
-                    ["Sensibilidad"] = "Sensibilidad",
+                    ["SeAutomedica"] =
+                        "Se automedica",
+
+                    ["Pasatiempo"] =
+                        "Pasatiempo",
+
+                    ["EstaEmbarazada"] =
+                        "Embarazo",
+
+                    ["NumeroHijos"] =
+                        "Número de hijos",
+
+                    ["Diagnostico"] =
+                        "Diagnóstico médico en rehabilitación",
+
+                    ["Reflejos"] =
+                        "Reflejos",
+
+                    ["Sensibilidad"] =
+                        "Sensibilidad",
+
                     ["LenguajeOrientacion"] =
                         "Lenguaje / orientación",
-                    ["OtrosDiagnostico"] = "Otros",
 
-                    ["SitioCicatriz"] = "Sitio de cicatriz",
-                    ["CicatrizQueloide"] = "Queloide",
-                    ["CicatrizRetractil"] = "Retráctil",
-                    ["CicatrizAbierta"] = "Abierta",
-                    ["CicatrizConAdherencia"] = "Con adherencia",
-                    ["CicatrizHipertrofica"] = "Hipertrófica",
+                    ["OtrosDiagnostico"] =
+                        "Otros",
+
+                    ["SitioCicatriz"] =
+                        "Sitio de cicatriz",
+
+                    ["CicatrizQueloide"] =
+                        "Queloide",
+
+                    ["CicatrizRetractil"] =
+                        "Retráctil",
+
+                    ["CicatrizAbierta"] =
+                        "Abierta",
+
+                    ["CicatrizConAdherencia"] =
+                        "Con adherencia",
+
+                    ["CicatrizHipertrofica"] =
+                        "Hipertrófica",
 
                     ["TrasladosValorInicial"] =
                         "Traslados - valoración inicial",
@@ -1135,15 +1738,21 @@ namespace FISIOSPORT.Controllers
                     ["TrasladoCamilla"] =
                         "Camilla",
 
-                    ["MarchaLibre"] = "Marcha libre",
+                    ["MarchaLibre"] =
+                        "Marcha libre",
+
                     ["MarchaClaudicante"] =
                         "Marcha claudicante",
+
                     ["MarchaConAyuda"] =
                         "Marcha con ayuda",
+
                     ["MarchaEspastica"] =
                         "Marcha espástica",
+
                     ["MarchaAtaxica"] =
                         "Marcha atáxica",
+
                     ["MarchaOtros"] =
                         "Otros tipos de marcha",
 
@@ -1317,189 +1926,180 @@ namespace FISIOSPORT.Controllers
                     : 0;
 
             var document =
-                QuestPDF.Fluent.Document.Create(document =>
-                {
-                    document.Page(page =>
+                QuestPDF.Fluent.Document.Create(
+                    document =>
                     {
-                        page.Size(PageSizes.A4);
+                        document.Page(page =>
+                        {
+                            page.Size(
+                                PageSizes.A4);
 
-                        page.Margin(
-                            1.4f,
-                            Unit.Centimetre
-                        );
+                            page.Margin(
+                                1.4f,
+                                Unit.Centimetre);
 
-                        page.PageColor(Colors.White);
+                            page.PageColor(
+                                Colors.White);
 
-                        page.DefaultTextStyle(
-                            x => x.FontSize(8.5f)
-                        );
+                            page.DefaultTextStyle(
+                                x => x.FontSize(8.5f));
 
-                        page.Header()
-                            .Column(column =>
-                            {
-                                column.Item()
-                                    .AlignCenter()
-                                    .Text(
-                                        "HISTORIA CLÍNICA FISIOTERAPIA"
-                                    )
-                                    .Bold()
-                                    .FontSize(18)
-                                    .FontColor(
-                                        Colors.Blue.Medium
-                                    );
-
-                                column.Item()
-                                    .PaddingTop(3)
-                                    .AlignCenter()
-                                    .Text(
-                                        "FISIOSPORT"
-                                    )
-                                    .SemiBold()
-                                    .FontSize(9)
-                                    .FontColor(
-                                        Colors.Grey.Darken1
-                                    );
-
-                                column.Item()
-                                    .PaddingTop(8)
-                                    .LineHorizontal(1)
-                                    .LineColor(
-                                        Colors.Blue.Medium
-                                    );
-                            });
-
-                        page.Content()
-                            .PaddingTop(12)
-                            .Column(column =>
-                            {
-                                column.Spacing(8);
-
-                                foreach (
-                                    var seccion
-                                    in secciones)
+                            page.Header()
+                                .Column(column =>
                                 {
                                     column.Item()
-                                        .Background(
-                                            Colors.Blue.Lighten5
-                                        )
-                                        .Border(1)
-                                        .BorderColor(
-                                            Colors.Blue.Lighten2
-                                        )
-                                        .Padding(6)
+                                        .AlignCenter()
                                         .Text(
-                                            seccion.Titulo
-                                        )
+                                            "HISTORIA CLÍNICA FISIOTERAPIA")
                                         .Bold()
+                                        .FontSize(18)
+                                        .FontColor(
+                                            Colors.Blue.Medium);
+
+                                    column.Item()
+                                        .PaddingTop(3)
+                                        .AlignCenter()
+                                        .Text(
+                                            "FISIOSPORT")
+                                        .SemiBold()
                                         .FontSize(9)
                                         .FontColor(
-                                            Colors.Blue.Darken2
-                                        );
+                                            Colors.Grey.Darken1);
+
+                                    column.Item()
+                                        .PaddingTop(8)
+                                        .LineHorizontal(1)
+                                        .LineColor(
+                                            Colors.Blue.Medium);
+                                });
+
+                            page.Content()
+                                .PaddingTop(12)
+                                .Column(column =>
+                                {
+                                    column.Spacing(8);
 
                                     foreach (
-                                        var clave
-                                        in seccion.Claves)
+                                        var seccion
+                                        in secciones)
                                     {
-                                        if (!historia.TryGetValue(
-                                                clave,
-                                                out var valor))
-                                            continue;
-
-                                        if (string.IsNullOrWhiteSpace(valor))
-                                            valor = "—";
-
                                         column.Item()
-                                            .PaddingVertical(2)
-                                            .Row(row =>
+                                            .Background(
+                                                Colors.Blue.Lighten5)
+                                            .Border(1)
+                                            .BorderColor(
+                                                Colors.Blue.Lighten2)
+                                            .Padding(6)
+                                            .Text(
+                                                seccion.Titulo)
+                                            .Bold()
+                                            .FontSize(9)
+                                            .FontColor(
+                                                Colors.Blue.Darken2);
+
+                                        foreach (
+                                            var clave
+                                            in seccion.Claves)
+                                        {
+                                            if (!historia.TryGetValue(
+                                                    clave,
+                                                    out var valor))
                                             {
-                                                row.ConstantItem(145)
-                                                    .Text(
-                                                        etiquetas[clave]
-                                                    )
-                                                    .SemiBold();
+                                                continue;
+                                            }
+
+                                            if (string.IsNullOrWhiteSpace(
+                                                    valor))
+                                            {
+                                                valor = "—";
+                                            }
+
+                                            column.Item()
+                                                .PaddingVertical(2)
+                                                .Row(row =>
+                                                {
+                                                    row.ConstantItem(145)
+                                                        .Text(
+                                                            etiquetas[clave])
+                                                        .SemiBold();
+
+                                                    row.RelativeItem()
+                                                        .Text(valor);
+                                                });
+                                        }
+                                    }
+
+                                    column.Item()
+                                        .PaddingTop(8)
+                                        .Text(
+                                            "ESCALA DEL DOLOR")
+                                        .Bold()
+                                        .FontSize(9);
+
+                                    column.Item()
+                                        .PaddingTop(5)
+                                        .Row(row =>
+                                        {
+                                            for (
+                                                int i = 0;
+                                                i <= 10;
+                                                i++)
+                                            {
+                                                var color =
+                                                    i <= 2
+                                                        ? "#16A34A"
+                                                        : i <= 5
+                                                            ? "#84CC16"
+                                                            : i <= 7
+                                                                ? "#F59E0B"
+                                                                : i <= 8
+                                                                    ? "#F97316"
+                                                                    : "#DC2626";
 
                                                 row.RelativeItem()
-                                                    .Text(valor);
-                                            });
-                                    }
-                                }
+                                                    .Padding(1)
+                                                    .Background(color)
+                                                    .Padding(4)
+                                                    .AlignCenter()
+                                                    .Text(
+                                                        i.ToString())
+                                                    .Bold()
+                                                    .FontColor(
+                                                        Colors.White);
+                                            }
+                                        });
 
-                                column.Item()
-                                    .PaddingTop(8)
-                                    .Text(
-                                        "ESCALA DEL DOLOR"
-                                    )
-                                    .Bold()
-                                    .FontSize(9);
+                                    column.Item()
+                                        .PaddingTop(3)
+                                        .AlignCenter()
+                                        .Text(
+                                            $"Dolor registrado: {dolor}/10")
+                                        .Bold();
+                                });
 
-                                column.Item()
-                                    .PaddingTop(5)
-                                    .Row(row =>
-                                    {
-                                        for (
-                                            int i = 0;
-                                            i <= 10;
-                                            i++)
-                                        {
-                                            var color =
-                                                i <= 2
-                                                    ? "#16A34A"
-                                                    : i <= 5
-                                                        ? "#84CC16"
-                                                        : i <= 7
-                                                            ? "#F59E0B"
-                                                            : i <= 8
-                                                                ? "#F97316"
-                                                                : "#DC2626";
+                            page.Footer()
+                                .AlignCenter()
+                                .Text(text =>
+                                {
+                                    text.Span(
+                                        "FisioSport · Historia clínica · Página ");
 
-                                            row.RelativeItem()
-                                                .Padding(1)
-                                                .Background(color)
-                                                .Padding(4)
-                                                .AlignCenter()
-                                                .Text(
-                                                    i.ToString()
-                                                )
-                                                .Bold()
-                                                .FontColor(
-                                                    Colors.White
-                                                );
-                                        }
-                                    });
-
-                                column.Item()
-                                    .PaddingTop(3)
-                                    .AlignCenter()
-                                    .Text(
-                                        $"Dolor registrado: {dolor}/10"
-                                    )
-                                    .Bold();
-                            });
-
-                        page.Footer()
-                            .AlignCenter()
-                            .Text(text =>
-                            {
-                                text.Span(
-                                    "FisioSport · Historia clínica · Página "
-                                );
-
-                                text.CurrentPageNumber();
-                            });
+                                    text.CurrentPageNumber();
+                                });
+                        });
                     });
-                });
 
-            var pdf = document.GeneratePdf();
+            var pdf =
+                document.GeneratePdf();
 
             return File(
                 pdf,
                 "application/pdf",
-                $"HistoriaClinica_{paciente.Id}_{DateTime.Now:yyyyMMdd}.pdf"
-            );
+                $"HistoriaClinica_{paciente.Id}_{DateTime.Now:yyyyMMdd}.pdf");
         }
 
         // =========================================================
-        // HISTORIA CLÍNICA
+        // CARGAR HISTORIA DEL PACIENTE
         // =========================================================
 
         private async Task CargarHistoriaPaciente(
@@ -1523,7 +2123,8 @@ namespace FISIOSPORT.Controllers
                     .Where(c =>
                         c.PacienteId == pacienteId &&
                         c.FisioterapeutaId == IdActual)
-                    .OrderByDescending(c => c.FechaConsulta)
+                    .OrderByDescending(
+                        c => c.FechaConsulta)
                     .FirstOrDefaultAsync();
 
             modelo.PacienteSeleccionado =
@@ -1538,6 +2139,10 @@ namespace FISIOSPORT.Controllers
             }
         }
 
+        // =========================================================
+        // CONSTRUIR HISTORIA
+        // =========================================================
+
         private static Dictionary<string, string>
             ConstruirHistoria(
                 Paciente paciente,
@@ -1545,8 +2150,9 @@ namespace FISIOSPORT.Controllers
         {
             var historia =
                 new Dictionary<string, string>();
+
             historia["IdPaciente"] =
-    paciente.Id.ToString();
+                paciente.Id.ToString();
 
             using var antecedentes =
                 ParseJson(
@@ -1560,12 +2166,13 @@ namespace FISIOSPORT.Controllers
                 JsonElement root,
                 string key)
             {
-                if (root.TryGetProperty(
-                    key,
-                    out var property))
+                if (
+                    root.TryGetProperty(
+                        key,
+                        out var property))
                 {
-                    return property.GetString()
-                           ?? string.Empty;
+                    return property.GetString() ??
+                           string.Empty;
                 }
 
                 return string.Empty;
@@ -1596,17 +2203,17 @@ namespace FISIOSPORT.Controllers
                 paciente.Escolaridad;
 
             historia["Terapeuta"] =
-                consulta.Fisioterapeuta?.Nombre
-                ?? string.Empty;
+                consulta.Fisioterapeuta?.Nombre ??
+                string.Empty;
 
             historia["Expediente"] =
                 Get(
                     antecedentes.RootElement,
-                    "Expediente"
-                );
+                    "Expediente");
 
-            if (string.IsNullOrWhiteSpace(
-                historia["Expediente"]))
+            if (
+                string.IsNullOrWhiteSpace(
+                    historia["Expediente"]))
             {
                 historia["Expediente"] =
                     $"FS-{paciente.Id:000000}";
@@ -1617,19 +2224,29 @@ namespace FISIOSPORT.Controllers
                     .ToString("dd/MM/yyyy");
 
             historia["Peso"] =
-                Get(funcional.RootElement, "Peso");
+                Get(
+                    funcional.RootElement,
+                    "Peso");
 
             historia["Talla"] =
-                Get(funcional.RootElement, "Talla");
+                Get(
+                    funcional.RootElement,
+                    "Talla");
 
             historia["Estatura"] =
-                Get(funcional.RootElement, "Estatura");
+                Get(
+                    funcional.RootElement,
+                    "Estatura");
 
             historia["IMC"] =
-                Get(funcional.RootElement, "IMC");
+                Get(
+                    funcional.RootElement,
+                    "IMC");
 
             historia["Etnia"] =
-                Get(funcional.RootElement, "Etnia");
+                Get(
+                    funcional.RootElement,
+                    "Etnia");
 
             historia["MotivoConsulta"] =
                 consulta.MotivoConsulta;
@@ -1705,28 +2322,44 @@ namespace FISIOSPORT.Controllers
                 consulta.EspasmosContractura;
 
             historia["Tabaquismo"] =
-                Get(antecedentes.RootElement, "Tabaquismo");
+                Get(
+                    antecedentes.RootElement,
+                    "Tabaquismo");
 
             historia["Alcoholismo"] =
-                Get(antecedentes.RootElement, "Alcoholismo");
+                Get(
+                    antecedentes.RootElement,
+                    "Alcoholismo");
 
             historia["Drogas"] =
-                Get(antecedentes.RootElement, "Drogas");
+                Get(
+                    antecedentes.RootElement,
+                    "Drogas");
 
             historia["ActividadFisica"] =
-                Get(antecedentes.RootElement, "ActividadFisica");
+                Get(
+                    antecedentes.RootElement,
+                    "ActividadFisica");
 
             historia["SeAutomedica"] =
-                Get(antecedentes.RootElement, "SeAutomedica");
+                Get(
+                    antecedentes.RootElement,
+                    "SeAutomedica");
 
             historia["Pasatiempo"] =
-                Get(antecedentes.RootElement, "Pasatiempo");
+                Get(
+                    antecedentes.RootElement,
+                    "Pasatiempo");
 
             historia["EstaEmbarazada"] =
-                Get(antecedentes.RootElement, "EstaEmbarazada");
+                Get(
+                    antecedentes.RootElement,
+                    "EstaEmbarazada");
 
             historia["NumeroHijos"] =
-                Get(antecedentes.RootElement, "NumeroHijos");
+                Get(
+                    antecedentes.RootElement,
+                    "NumeroHijos");
 
             historia["Diagnostico"] =
                 consulta.DiagnosticoRehabilitacion;
@@ -1743,122 +2376,102 @@ namespace FISIOSPORT.Controllers
             historia["OtrosDiagnostico"] =
                 Get(
                     funcional.RootElement,
-                    "OtrosDiagnostico"
-                );
+                    "OtrosDiagnostico");
 
             historia["SitioCicatriz"] =
                 Get(
                     funcional.RootElement,
-                    "SitioCicatriz"
-                );
+                    "SitioCicatriz");
 
             historia["CicatrizQueloide"] =
                 Get(
                     funcional.RootElement,
-                    "CicatrizQueloide"
-                );
+                    "CicatrizQueloide");
 
             historia["CicatrizRetractil"] =
                 Get(
                     funcional.RootElement,
-                    "CicatrizRetractil"
-                );
+                    "CicatrizRetractil");
 
             historia["CicatrizAbierta"] =
                 Get(
                     funcional.RootElement,
-                    "CicatrizAbierta"
-                );
+                    "CicatrizAbierta");
 
             historia["CicatrizConAdherencia"] =
                 Get(
                     funcional.RootElement,
-                    "CicatrizConAdherencia"
-                );
+                    "CicatrizConAdherencia");
 
             historia["CicatrizHipertrofica"] =
                 Get(
                     funcional.RootElement,
-                    "CicatrizHipertrofica"
-                );
+                    "CicatrizHipertrofica");
 
             historia["TrasladosValorInicial"] =
                 Get(
                     funcional.RootElement,
-                    "TrasladosValorInicial"
-                );
+                    "TrasladosValorInicial");
 
             historia["TrasladosValorFinal"] =
                 Get(
                     funcional.RootElement,
-                    "TrasladosValorFinal"
-                );
+                    "TrasladosValorFinal");
 
             historia["TrasladoIndependiente"] =
                 Get(
                     funcional.RootElement,
-                    "TrasladoIndependiente"
-                );
+                    "TrasladoIndependiente");
 
             historia["TrasladoSillaRuedas"] =
                 Get(
                     funcional.RootElement,
-                    "TrasladoSillaRuedas"
-                );
+                    "TrasladoSillaRuedas");
 
             historia["TrasladoConAyudas"] =
                 Get(
                     funcional.RootElement,
-                    "TrasladoConAyudas"
-                );
+                    "TrasladoConAyudas");
 
             historia["TrasladoCamilla"] =
                 Get(
                     funcional.RootElement,
-                    "TrasladoCamilla"
-                );
+                    "TrasladoCamilla");
 
             historia["MarchaLibre"] =
                 Get(
                     funcional.RootElement,
-                    "MarchaLibre"
-                );
+                    "MarchaLibre");
 
             historia["MarchaClaudicante"] =
                 Get(
                     funcional.RootElement,
-                    "MarchaClaudicante"
-                );
+                    "MarchaClaudicante");
 
             historia["MarchaConAyuda"] =
                 Get(
                     funcional.RootElement,
-                    "MarchaConAyuda"
-                );
+                    "MarchaConAyuda");
 
             historia["MarchaEspastica"] =
                 Get(
                     funcional.RootElement,
-                    "MarchaEspastica"
-                );
+                    "MarchaEspastica");
 
             historia["MarchaAtaxica"] =
                 Get(
                     funcional.RootElement,
-                    "MarchaAtaxica"
-                );
+                    "MarchaAtaxica");
 
             historia["MarchaOtros"] =
                 Get(
                     funcional.RootElement,
-                    "MarchaOtros"
-                );
+                    "MarchaOtros");
 
             historia["ObservacionesMarcha"] =
                 Get(
                     funcional.RootElement,
-                    "ObservacionesMarcha"
-                );
+                    "ObservacionesMarcha");
 
             historia["EscalaDolor"] =
                 consulta.EscalaDolor.ToString();
@@ -1866,8 +2479,7 @@ namespace FISIOSPORT.Controllers
             historia["AntecedentesGenerales"] =
                 Get(
                     antecedentes.RootElement,
-                    "AntecedentesGenerales"
-                );
+                    "AntecedentesGenerales");
 
             historia["Alergias"] =
                 consulta.Alergias;
@@ -1878,11 +2490,17 @@ namespace FISIOSPORT.Controllers
             return historia;
         }
 
+        // =========================================================
+        // JSON
+        // =========================================================
+
         private static JsonDocument ParseJson(
             string json)
         {
             if (string.IsNullOrWhiteSpace(json))
+            {
                 return JsonDocument.Parse("{}");
+            }
 
             try
             {
@@ -1893,6 +2511,10 @@ namespace FISIOSPORT.Controllers
                 return JsonDocument.Parse("{}");
             }
         }
+
+        // =========================================================
+        // SIGNOS VITALES
+        // =========================================================
 
         private static string ObtenerParteSignos(
             string signos,
@@ -1909,11 +2531,10 @@ namespace FISIOSPORT.Controllers
 
             var parte =
                 partes.FirstOrDefault(
-                    p => p.StartsWith(
-                        clave,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                );
+                    p =>
+                        p.StartsWith(
+                            clave,
+                            StringComparison.OrdinalIgnoreCase));
 
             if (parte == null)
                 return string.Empty;
@@ -1925,6 +2546,10 @@ namespace FISIOSPORT.Controllers
                 ? parte[(indice + 1)..].Trim()
                 : parte;
         }
+
+        // =========================================================
+        // SÍ / NO
+        // =========================================================
 
         private static string SiNo(bool? valor)
         {
