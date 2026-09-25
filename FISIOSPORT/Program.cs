@@ -4,29 +4,31 @@ using FISIOSPORT.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-QuestPDF.Settings.License =
-    QuestPDF.Infrastructure.LicenseType.Community;
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+// ======================================================
+// CONFIGURACIÓN DE PROXY PARA RENDER
+// (DEBE IR ANTES DE builder.Build())
+// ======================================================
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // ======================================================
 // BASE DE DATOS - SUPABASE / POSTGRESQL
 // ======================================================
-
-var connectionString =
-    builder.Configuration["ConnectionStrings:DefaultConnection"];
-
-Console.WriteLine(
-    $"CONEXIÃ“N ENCONTRADA: {!string.IsNullOrWhiteSpace(connectionString)}"
-);
+var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
+Console.WriteLine($"CONEXIÓN ENCONTRADA: {!string.IsNullOrWhiteSpace(connectionString)}");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException(
-        "No se encontrÃ³ ConnectionStrings:DefaultConnection."
-    );
+    throw new InvalidOperationException("No se encontró ConnectionStrings:DefaultConnection.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -43,24 +45,23 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         }
     )
 );
+
 // ======================================================
 // MVC
 // ======================================================
-
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ExcelReporteService>();
 builder.Services.AddScoped<CsvReporteService>();
-// ======================================================
-// AUTENTICACIÃ“N POR COOKIES
-// ======================================================
 
+// ======================================================
+// AUTENTICACIÓN POR COOKIES
+// ======================================================
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/Login";
-
         options.Cookie.Name = "FisioSport.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
@@ -72,41 +73,49 @@ builder.Services
 // ======================================================
 // RENDER
 // ======================================================
-
-// Render proporciona la variable PORT.
-// En local esta parte no modifica tu configuraciÃ³n.
 var renderPort = Environment.GetEnvironmentVariable("PORT");
-
 if (!string.IsNullOrWhiteSpace(renderPort))
 {
-    builder.WebHost.UseUrls(
-        $"http://0.0.0.0:{renderPort}"
-    );
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
 }
+
+// ======================================================
+// CONSTRUIR LA APLICACIÓN
+// ======================================================
 var app = builder.Build();
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
+
+// ======================================================
+// MIDDLEWARE
+// ======================================================
+app.UseForwardedHeaders(); // Debe ser el primer middleware
+
+if (!app.Environment.IsDevelopment())
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-});
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGet("/health", () => Results.Ok("FisioSport OK"));
 
 // ======================================================
 // BASE DE DATOS + DATOS INICIALES
 // ======================================================
-
 using (var scope = app.Services.CreateScope())
 {
-    var context =
-        scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // Aplica automÃ¡ticamente migraciones pendientes.
+    // Aplica automáticamente migraciones pendientes.
     await context.Database.MigrateAsync();
 
     // --------------------------------------------------
     // FISIOTERAPEUTAS
     // --------------------------------------------------
-
     if (!await context.Fisioterapeutas.AnyAsync())
     {
         var ana = new Fisioterapeuta
@@ -114,7 +123,7 @@ using (var scope = app.Services.CreateScope())
             Nombre = "Dra. Ana Rojas",
             Correo = "ana@fisiosport.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
-            Especialidad = "RehabilitaciÃ³n deportiva",
+            Especialidad = "Rehabilitación deportiva",
             NumeroColegiado = "COL-4521"
         };
 
@@ -123,22 +132,17 @@ using (var scope = app.Services.CreateScope())
             Nombre = "Lic. Carlos Mendoza",
             Correo = "carlos@fisiosport.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
-            Especialidad = "Terapia neurolÃ³gica",
+            Especialidad = "Terapia neurológica",
             NumeroColegiado = "COL-7789"
         };
 
-        context.Fisioterapeutas.AddRange(
-            ana,
-            carlos
-        );
-
+        context.Fisioterapeutas.AddRange(ana, carlos);
         await context.SaveChangesAsync();
     }
 
     // --------------------------------------------------
     // PACIENTES
     // --------------------------------------------------
-
     if (!await context.Pacientes.AnyAsync())
     {
         var paciente1 = new Paciente
@@ -161,42 +165,27 @@ using (var scope = app.Services.CreateScope())
 
         var paciente3 = new Paciente
         {
-            Nombre = "Ricardo PeÃ±a",
+            Nombre = "Ricardo Peña",
             Correo = "ricardo@correo.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234"),
             Telefono = "70033445",
-            ContactoEmergencia = "Marta PeÃ±a - 70077665"
+            ContactoEmergencia = "Marta Peña - 70077665"
         };
 
-        context.Pacientes.AddRange(
-            paciente1,
-            paciente2,
-            paciente3
-        );
-
+        context.Pacientes.AddRange(paciente1, paciente2, paciente3);
         await context.SaveChangesAsync();
     }
 
     // --------------------------------------------------
     // CITAS
     // --------------------------------------------------
-
     if (!await context.Citas.AnyAsync())
     {
-        var ana = await context.Fisioterapeutas
-            .FirstAsync(f => f.Correo == "ana@fisiosport.com");
-
-        var carlos = await context.Fisioterapeutas
-            .FirstAsync(f => f.Correo == "carlos@fisiosport.com");
-
-        var mario = await context.Pacientes
-            .FirstAsync(p => p.Correo == "mario@correo.com");
-
-        var elena = await context.Pacientes
-            .FirstAsync(p => p.Correo == "elena@correo.com");
-
-        var ricardo = await context.Pacientes
-            .FirstAsync(p => p.Correo == "ricardo@correo.com");
+        var ana = await context.Fisioterapeutas.FirstAsync(f => f.Correo == "ana@fisiosport.com");
+        var carlos = await context.Fisioterapeutas.FirstAsync(f => f.Correo == "carlos@fisiosport.com");
+        var mario = await context.Pacientes.FirstAsync(p => p.Correo == "mario@correo.com");
+        var elena = await context.Pacientes.FirstAsync(p => p.Correo == "elena@correo.com");
+        var ricardo = await context.Pacientes.FirstAsync(p => p.Correo == "ricardo@correo.com");
 
         var citas = new List<Cita>
         {
@@ -207,9 +196,8 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today,
                 Hora = "09:00",
                 Estado = "Confirmada",
-                Notas = "SesiÃ³n de rodilla, segunda semana."
+                Notas = "Sesión de rodilla, segunda semana."
             },
-
             new Cita
             {
                 FisioterapeutaId = ana.Id,
@@ -217,9 +205,8 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today,
                 Hora = "10:30",
                 Estado = "Pendiente",
-                Notas = "Primera evaluaciÃ³n."
+                Notas = "Primera evaluación."
             },
-
             new Cita
             {
                 FisioterapeutaId = ana.Id,
@@ -227,9 +214,8 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today.AddDays(1),
                 Hora = "11:00",
                 Estado = "Confirmada",
-                Notas = "ContinuaciÃ³n de terapia de hombro."
+                Notas = "Continuación de terapia de hombro."
             },
-
             new Cita
             {
                 FisioterapeutaId = carlos.Id,
@@ -237,49 +223,18 @@ using (var scope = app.Services.CreateScope())
                 Fecha = DateTime.Today,
                 Hora = "15:00",
                 Estado = "Completada",
-                Notas = "Terapia neurolÃ³gica, sesiÃ³n 4."
+                Notas = "Terapia neurológica, sesión 4."
             }
         };
 
         context.Citas.AddRange(citas);
-
         await context.SaveChangesAsync();
     }
 }
 
 // ======================================================
-// MIDDLEWARE
-// ======================================================
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-app.UseForwardedHeaders();
-
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-
-    // 2. Forzar la redirección automática de HTTP a HTTPS
-    app.UseHttpsRedirection();
-}
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Para comprobar despuÃ©s que Render estÃ¡ funcionando.
-app.MapGet("/health", () => Results.Ok("FisioSport OK"));
-
-// ======================================================
 // RUTA PRINCIPAL
 // ======================================================
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
