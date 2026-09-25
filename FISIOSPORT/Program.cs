@@ -1,8 +1,10 @@
-﻿using FISIOSPORT.Services;
-using FISIOSPORT.Data;
+﻿using FISIOSPORT.Data;
 using FISIOSPORT.Models;
+using FISIOSPORT.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,10 +48,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // ======================================================
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<CsvReporteService>();
-builder.Services.AddScoped<CsvReporteService>();
 builder.Services.AddScoped<ExcelReporteService>();
-
+builder.Services.AddScoped<CsvReporteService>();
 // ======================================================
 // AUTENTICACIÃ“N POR COOKIES
 // ======================================================
@@ -64,7 +64,7 @@ builder.Services
         options.Cookie.Name = "FisioSport.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });
@@ -83,8 +83,13 @@ if (!string.IsNullOrWhiteSpace(renderPort))
         $"http://0.0.0.0:{renderPort}"
     );
 }
-builder.Services.AddScoped<CsvReporteService>();
 var app = builder.Build();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // ======================================================
 // BASE DE DATOS + DATOS INICIALES
@@ -251,7 +256,16 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+app.UseForwardedHeaders();
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+
+    // 2. Forzar la redirección automática de HTTP a HTTPS
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 
 app.UseRouting();
