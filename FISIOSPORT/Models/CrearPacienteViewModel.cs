@@ -83,11 +83,11 @@ namespace FISIOSPORT.Models
         // =========================================================
 
         [Required(ErrorMessage = "El motivo de consulta es obligatorio.")]
-        [MaxLength(3000)]
+        [MaxLength(300000)]
         public string MotivoConsulta { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Los tratamientos previos son obligatorios.")]
-        [MaxLength(3000)]
+        [MaxLength(300000)]
         public string TratamientosPrevios { get; set; } = string.Empty;
 
         // Campo virtual para mostrar errores relacionados con el JSON de otros hallazgos
@@ -197,7 +197,7 @@ namespace FISIOSPORT.Models
         public int? FR { get; set; }
 
         [Required(ErrorMessage = "Este campo es obligatorio.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string EspasmosContracturaMuscular { get; set; } = string.Empty;
 
         // =========================================================
@@ -239,23 +239,23 @@ namespace FISIOSPORT.Models
         // =========================================================
 
         [Required(ErrorMessage = "El diagnóstico médico en rehabilitación es obligatorio.")]
-        [MaxLength(3000)]
+        [MaxLength(300000)]
         public string DiagnosticoMedicoRehabilitacion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La valoración de reflejos es obligatoria.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string Reflejos { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La valoración de sensibilidad es obligatoria.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string Sensibilidad { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La valoración de lenguaje/orientación es obligatoria.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string LenguajeOrientacion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El campo Otros es obligatorio.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string OtrosDiagnostico { get; set; } = string.Empty;
 
         // =========================================================
@@ -263,7 +263,7 @@ namespace FISIOSPORT.Models
         // =========================================================
 
         [Required(ErrorMessage = "El sitio de la cicatriz es obligatorio.")]
-        [MaxLength(500)]
+        [MaxLength(5000)]
         public string SitioCicatriz { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Selecciona Sí o No para Queloide.")]
@@ -286,11 +286,11 @@ namespace FISIOSPORT.Models
         // =========================================================
 
         [Required(ErrorMessage = "La valoración inicial de traslados es obligatoria.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string TrasladosValorInicial { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La valoración final de traslados es obligatoria.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string TrasladosValorFinal { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Selecciona Sí o No para Independiente.")]
@@ -328,7 +328,7 @@ namespace FISIOSPORT.Models
         public bool? MarchaOtros { get; set; }
 
         [Required(ErrorMessage = "Las observaciones de marcha son obligatorias.")]
-        [MaxLength(2000)]
+        [MaxLength(200000)]
         public string ObservacionesMarcha { get; set; } = string.Empty;
 
         // =========================================================
@@ -344,15 +344,15 @@ namespace FISIOSPORT.Models
         // =========================================================
 
         [Required(ErrorMessage = "Los antecedentes generales son obligatorios.")]
-        [MaxLength(3000)]
+        [MaxLength(300000)]
         public string Antecedentes { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Las alergias son obligatorias.")]
-        [MaxLength(3000)]
+        [MaxLength(300000)]
         public string Alergias { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Las observaciones son obligatorias.")]
-        [MaxLength(3000)]
+        [MaxLength(300000)]
         public string Observaciones { get; set; } = string.Empty;
 
         // =========================================================
