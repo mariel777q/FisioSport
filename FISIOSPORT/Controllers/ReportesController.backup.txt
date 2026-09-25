@@ -13,16 +13,13 @@ namespace FISIOSPORT.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly CsvReporteService _csvReporteService;
-        private readonly ExcelReporteService _excelReporteService;
 
         public ReportesController(
-    ApplicationDbContext context,
-    CsvReporteService csvReporteService,
-    ExcelReporteService excelReporteService)
+            ApplicationDbContext context,
+            CsvReporteService csvReporteService)
         {
             _context = context;
             _csvReporteService = csvReporteService;
-            _excelReporteService = excelReporteService;
         }
 
         [HttpGet]
@@ -153,69 +150,6 @@ namespace FISIOSPORT.Controllers
             return File(
                 archivo,
                 "text/csv; charset=utf-8",
-                nombreArchivo);
-        }
-        [HttpGet]
-        public async Task<IActionResult> CitasExcel(
-    DateTime? fechaInicio,
-    DateTime? fechaFin)
-        {
-            var idFisioterapeuta = ObtenerIdFisioterapeuta();
-
-            if (idFisioterapeuta == null)
-            {
-                return Forbid();
-            }
-
-            var consulta = _context.Citas
-                .AsNoTracking()
-                .Include(c => c.Paciente)
-                .Where(c =>
-                    c.FisioterapeutaId == idFisioterapeuta.Value);
-
-            if (fechaInicio.HasValue)
-            {
-                var inicio = fechaInicio.Value.Date;
-
-                consulta = consulta.Where(c =>
-                    c.Fecha >= inicio);
-            }
-
-            if (fechaFin.HasValue)
-            {
-                var fin = fechaFin.Value.Date;
-
-                consulta = consulta.Where(c =>
-                    c.Fecha < fin.AddDays(1));
-            }
-
-            var citas = await consulta
-                .OrderBy(c => c.Fecha)
-                .ThenBy(c => c.Id)
-                .Select(c => new CitaReporteDto
-                {
-                    Id = c.Id,
-
-                    NombrePaciente =
-                        c.Paciente != null
-                            ? c.Paciente.Nombre
-                            : "Paciente",
-
-                    FechaCita = c.Fecha,
-
-                    EstadoCita = c.Estado
-                })
-                .ToListAsync();
-
-            var archivo =
-                _excelReporteService.GenerarReporteCitas(citas);
-
-            var nombreArchivo =
-                $"Reporte_Citas_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-
-            return File(
-                archivo,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 nombreArchivo);
         }
 

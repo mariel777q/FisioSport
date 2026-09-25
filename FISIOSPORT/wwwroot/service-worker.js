@@ -1,0 +1,65 @@
+﻿const CACHE_NAME = "fisiosport-static-v1";
+
+const STATIC_ASSETS = [
+    "/manifest.json",
+    "/pwa/icon-192.png",
+    "/pwa/icon-512.png"
+];
+
+self.addEventListener("install", event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(STATIC_ASSETS))
+            .then(() => self.skipWaiting())
+    );
+});
+
+self.addEventListener("activate", event => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(
+                keys
+                    .filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
+            )
+        ).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener("fetch", event => {
+    if (event.request.method !== "GET") {
+        return;
+    }
+
+    const url = new URL(event.request.url);
+
+    // Solo cacheamos recursos estáticos.
+    // No cacheamos páginas privadas ni datos clínicos.
+    const isStatic =
+        url.origin === self.location.origin &&
+        (
+            url.pathname.startsWith("/css/") ||
+            url.pathname.startsWith("/js/") ||
+            url.pathname.startsWith("/pwa/") ||
+            url.pathname === "/manifest.json"
+        );
+
+    if (!isStatic) {
+        return;
+    }
+
+    event.respondWith(
+        fetch(event.request)
+            .then(response => {
+                if (response.ok) {
+                    const copy = response.clone();
+
+                    caches.open(CACHE_NAME)
+                        .then(cache => cache.put(event.request, copy));
+                }
+
+                return response;
+            })
+            .catch(() => caches.match(event.request))
+    );
+});

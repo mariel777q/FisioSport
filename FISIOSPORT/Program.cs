@@ -47,6 +47,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<CsvReporteService>();
+builder.Services.AddScoped<CsvReporteService>();
+builder.Services.AddScoped<ExcelReporteService>();
 
 // ======================================================
 // AUTENTICACIÃ“N POR COOKIES
