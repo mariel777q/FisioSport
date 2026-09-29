@@ -404,7 +404,61 @@ namespace FISIOSPORT.Controllers
 
             return View(modelo);
         }
+        // =========================================================
+        // CALENDARIO DEL DASHBOARD
+        // =========================================================
 
+        [HttpGet]
+        public async Task<IActionResult> CalendarioCitas()
+        {
+            var citas = await _context.Citas
+                .AsNoTracking()
+                .Include(c => c.Paciente)
+                .Where(c =>
+                    c.FisioterapeutaId == IdActual &&
+                    c.Fecha >= DateTime.Today &&
+                    c.Estado != "Completada" &&
+                    c.Estado != "Cancelada")
+                .OrderBy(c => c.Fecha)
+                .ThenBy(c => c.Hora)
+                .ToListAsync();
+
+            var eventos = citas.Select(c => new
+            {
+                id = c.Id,
+
+                title = (c.Paciente != null
+                    ? c.Paciente.Nombre
+                    : "Paciente") + " - " + c.Hora,
+
+                start = c.Fecha.ToString("yyyy-MM-dd") +
+                        "T" +
+                        c.Hora,
+
+                extendedProps = new
+                {
+                    paciente = c.Paciente != null
+                        ? c.Paciente.Nombre
+                        : "Paciente",
+
+                    hora = c.Hora,
+
+                    estado = c.Estado ?? "Pendiente"
+                },
+
+                backgroundColor =
+                    c.Estado == "Confirmada"
+                        ? "#0891b2"
+                        : "#0e7490",
+
+                borderColor =
+                    c.Estado == "Confirmada"
+                        ? "#22d3ee"
+                        : "#155e75"
+            });
+
+            return Json(eventos);
+        }
         // =========================================================
         // NUEVO PACIENTE - GET
         // =========================================================

@@ -1,4 +1,5 @@
-﻿@model FISIOSPORT.Models.DashboardFisioViewModel
+﻿
+@model FISIOSPORT.Models.DashboardFisioViewModel
 
 @{
     ViewData["Title"] = "Dashboard";
@@ -31,6 +32,10 @@
     </div>
 }
 
+<!-- ========================================================= -->
+<!-- ENCABEZADO DEL DASHBOARD -->
+<!-- ========================================================= -->
+
 <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between mb-8">
 
     <div>
@@ -44,13 +49,16 @@
         </h1>
 
         <p class="mt-2 text-sm text-gray-400">
+
             @Model.Especialidad
+
             @if (!string.IsNullOrWhiteSpace(Model.NumeroColegiado))
             {
                 <span>
                     · Colegiado @Model.NumeroColegiado
                 </span>
             }
+
         </p>
 
     </div>
@@ -79,34 +87,139 @@
 
 </div>
 
-<div class="mb-5">
 
-    <h2 class="text-lg font-bold text-white">
-<div class="mb-6">
-            <a asp-controller="Reportes"
-               asp-action="Index"
-               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-cyan-400/70 text-[#071017] font-bold hover:bg-cyan-400 transition">
-                Reportes
-            </a>
+<!-- ========================================================= -->
+<!-- REPORTES -->
+<!-- ========================================================= -->
+
+<div class="mb-8">
+
+    <a asp-controller="Reportes"
+       asp-action="Index"
+       class="inline-flex items-center gap-2 rounded-xl bg-cyan-400/70 px-5 py-3 font-bold text-[#071017] hover:bg-cyan-400 transition">
+
+        <i class="bi bi-bar-chart-line"></i>
+
+        Reportes
+
+    </a>
+
 </div>
 
-        Próximas citas
-    </h2>
 
-    <p class="text-sm text-gray-500 mt-1">
-        Las sesiones completadas desaparecen automáticamente de este listado.
+<!-- ========================================================= -->
+<!-- CALENDARIO DE CITAS -->
+<!-- ========================================================= -->
+
+<section class="mb-10 rounded-2xl border border-gray-800 bg-[#111820] p-5 shadow-xl sm:p-7">
+
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        <div>
+
+            <div class="flex items-center gap-2">
+
+                <i class="bi bi-calendar-week text-xl text-cyan-400"></i>
+
+                <h2 class="text-xl font-bold text-white">
+                    Calendario de citas
+                </h2>
+
+            </div>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Consulta tus citas programadas por día, semana o mes.
+            </p>
+
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+
+            <div class="flex items-center gap-2">
+
+                <span class="h-3 w-3 rounded-full bg-cyan-500"></span>
+
+                Pendiente
+
+            </div>
+
+            <div class="flex items-center gap-2">
+
+                <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
+
+                Confirmada
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Calendario -->
+
+    <div id="calendarioFisio"
+         class="min-h-[550px] rounded-xl bg-[#0d1117] p-3 sm:p-5">
+    </div>
+
+    <!-- Error de carga -->
+
+    <div id="calendarioError"
+         class="mt-4 hidden rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
+
+        <i class="bi bi-exclamation-circle mr-2"></i>
+
+        No fue posible cargar las citas del calendario. Intenta recargar la página.
+
+    </div>
+
+    <!-- Ayuda -->
+
+    <p class="mt-4 text-xs text-gray-500">
+
+        <i class="bi bi-info-circle mr-1"></i>
+
+        Selecciona una cita en el calendario para consultar sus detalles.
+
     </p>
 
+</section>
+
+
+<!-- ========================================================= -->
+<!-- PRÓXIMAS CITAS -->
+<!-- ========================================================= -->
+
+<div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+    <div>
+
+        <h2 class="text-lg font-bold text-white">
+            Próximas citas
+        </h2>
+
+        <p class="mt-1 text-sm text-gray-500">
+            Las sesiones completadas desaparecen automáticamente de este listado.
+        </p>
+
+    </div>
+
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-    @if (!Model.Citas.Any())
+<!-- ========================================================= -->
+<!-- TARJETAS DE CITAS -->
+<!-- ========================================================= -->
+
+<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+    @if (Model.Citas == null || !Model.Citas.Any())
     {
         <div class="col-span-full rounded-2xl border border-dashed border-gray-800 bg-[#111820] p-10 text-center">
 
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400 text-xl">
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-xl text-cyan-400">
+
                 <i class="bi bi-calendar-check"></i>
+
             </div>
 
             <h3 class="mt-4 font-bold text-white">
@@ -117,108 +230,334 @@
                 Cuando agendes una nueva cita aparecerá aquí.
             </p>
 
+            <a asp-action="CrearCita"
+               class="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-bold text-[#071017] transition hover:bg-cyan-300">
+
+                <i class="bi bi-calendar-plus"></i>
+
+                Agendar cita
+
+            </a>
+
         </div>
     }
-
-    @foreach (var cita in Model.Citas)
+    else
     {
-        var colorEstado = cita.Estado switch
+        @foreach (var cita in Model.Citas)
         {
-            "Confirmada" =>
-                "bg-emerald-400/10 text-emerald-300 border-emerald-400/30",
+            var colorEstado = cita.Estado switch
+            {
+                "Confirmada" =>
+                    "bg-emerald-400/10 text-emerald-300 border-emerald-400/30",
 
-            "Pendiente" =>
-                "bg-amber-400/10 text-amber-300 border-amber-400/30",
+                "Pendiente" =>
+                    "bg-amber-400/10 text-amber-300 border-amber-400/30",
 
-            _ =>
-                "bg-gray-400/10 text-gray-300 border-gray-400/30"
-        };
+                _ =>
+                    "bg-gray-400/10 text-gray-300 border-gray-400/30"
+            };
 
-        <a asp-action="DetalleCita"
-           asp-route-id="@cita.Id"
-           class="group block rounded-2xl border border-gray-800 bg-[#161b22] p-5 hover:border-cyan-400/40 hover:bg-[#1a212b] transition">
+            <a asp-action="DetalleCita"
+               asp-route-id="@cita.Id"
+               class="group block rounded-2xl border border-gray-800 bg-[#161b22] p-5 transition hover:border-cyan-400/40 hover:bg-[#1a212b]">
 
-            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start justify-between gap-3">
 
-                <div>
+                    <div class="min-w-0">
 
-                    <h3 class="font-bold text-white group-hover:text-cyan-300 transition">
-                        @cita.NombrePaciente
-                    </h3>
+                        <h3 class="break-words font-bold text-white transition group-hover:text-cyan-300">
+                            @cita.NombrePaciente
+                        </h3>
 
-                    <p class="text-xs text-gray-500 mt-1">
-                        Atención fisioterapéutica
-                    </p>
+                        <p class="mt-1 text-xs text-gray-500">
+                            Atención fisioterapéutica
+                        </p>
 
-                </div>
+                    </div>
 
-                <span class="shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold @colorEstado">
-                    @cita.Estado
-                </span>
-                <span id="ejercicios-resumen-@cita.Id"
-      class="mt-2 shrink-0 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-2.5 py-1 text-[10px] font-bold text-cyan-300">
-    Ejercicios...
-</span>
-
-            </div>
-
-            <div class="mt-5 space-y-2">
-
-                <div class="flex items-center gap-2 text-sm text-gray-400">
-
-                    <i class="bi bi-calendar3 text-cyan-400"></i>
-
-                    @cita.Fecha.ToString("dd/MM/yyyy")
+                    <span class="shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold @colorEstado">
+                        @cita.Estado
+                    </span>
 
                 </div>
 
-                <div class="flex items-center gap-2 text-sm text-gray-400">
+                <!-- Resumen de ejercicios -->
 
-                    <i class="bi bi-clock text-cyan-400"></i>
+                <div class="mt-3">
 
-                    @cita.Hora
+                    <span id="ejercicios-resumen-@cita.Id"
+                          class="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/5 px-2.5 py-1 text-[10px] font-bold text-cyan-300">
+
+                        Ejercicios...
+
+                    </span>
 
                 </div>
 
-            </div>
+                <!-- Fecha y hora -->
 
-            <div class="mt-5 border-t border-gray-800 pt-4">
+                <div class="mt-5 space-y-2">
 
-                <span class="text-xs font-semibold text-cyan-400">
-                    Abrir sesión →
-                </span>
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
 
-            </div>
+                        <i class="bi bi-calendar3 text-cyan-400"></i>
 
-        </a>
+                        @cita.Fecha.ToString("dd/MM/yyyy")
+
+                    </div>
+
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+
+                        <i class="bi bi-clock text-cyan-400"></i>
+
+                        @cita.Hora
+
+                    </div>
+
+                </div>
+
+                <!-- Abrir sesión -->
+
+                <div class="mt-5 border-t border-gray-800 pt-4">
+
+                    <span class="text-xs font-semibold text-cyan-400">
+
+                        Abrir sesión →
+
+                    </span>
+
+                </div>
+
+            </a>
+        }
     }
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ESTILOS DEL CALENDARIO -->
+<!-- ========================================================= -->
+
+<style>
+
+    #calendarioFisio {
+        color: #e5e7eb;
+    }
+
+    /* Barra superior */
+
+    #calendarioFisio .fc-toolbar-title {
+        color: #f9fafb;
+        font-size: 1.25rem;
+        font-weight: 800;
+        text-transform: capitalize;
+    }
+
+    #calendarioFisio .fc-toolbar {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* Botones */
+
+    #calendarioFisio .fc-button-primary {
+        background-color: #164e63;
+        border-color: #155e75;
+        color: #ecfeff;
+        font-weight: 700;
+        text-transform: capitalize;
+        box-shadow: none;
+    }
+
+    #calendarioFisio .fc-button-primary:hover {
+        background-color: #0891b2;
+        border-color: #0891b2;
+        color: #ffffff;
+    }
+
+    #calendarioFisio .fc-button-primary:disabled {
+        background-color: #164e63;
+        border-color: #155e75;
+        opacity: .5;
+    }
+
+    #calendarioFisio .fc-button-primary:not(:disabled).fc-button-active,
+    #calendarioFisio .fc-button-primary:not(:disabled):active {
+        background-color: #06b6d4;
+        border-color: #06b6d4;
+        color: #071017;
+    }
+
+    /* Bordes de la cuadrícula */
+
+    #calendarioFisio .fc-theme-standard td,
+    #calendarioFisio .fc-theme-standard th,
+    #calendarioFisio .fc-theme-standard .fc-scrollgrid {
+        border-color: #263341;
+    }
+
+    /* Encabezados de los días */
+
+    #calendarioFisio .fc-col-header-cell {
+        background-color: #161b22;
+        padding: 10px 0;
+    }
+
+    #calendarioFisio .fc-col-header-cell-cushion {
+        color: #9ca3af;
+        font-size: .8rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    /* Números de los días */
+
+    #calendarioFisio .fc-daygrid-day-number {
+        color: #d1d5db;
+        padding: 8px;
+        text-decoration: none;
+    }
+
+    /* Día actual */
+
+    #calendarioFisio .fc-day-today {
+        background-color: rgba(6, 182, 212, .07) !important;
+    }
+
+    #calendarioFisio .fc-day-today .fc-daygrid-day-number {
+        color: #22d3ee;
+        font-weight: 800;
+    }
+
+    /* Eventos */
+
+    #calendarioFisio .fc-event {
+        cursor: pointer;
+        border-radius: 6px;
+        padding: 3px 5px;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    #calendarioFisio .fc-event-title {
+        white-space: normal;
+    }
+
+    #calendarioFisio .fc-timegrid-slot-label,
+    #calendarioFisio .fc-timegrid-axis-cushion {
+        color: #9ca3af;
+        font-size: .75rem;
+    }
+
+    #calendarioFisio .fc-list {
+        border-color: #263341;
+    }
+
+    #calendarioFisio .fc-list-day-cushion {
+        background-color: #161b22;
+    }
+
+    #calendarioFisio .fc-list-day-text,
+    #calendarioFisio .fc-list-day-side-text {
+        color: #e5e7eb;
+        text-decoration: none;
+    }
+
+    #calendarioFisio .fc-list-event:hover td {
+        background-color: #1a212b;
+    }
+
+    #calendarioFisio .fc-list-event-title a {
+        color: #e5e7eb;
+        text-decoration: none;
+    }
+
+    #calendarioFisio .fc-list-event-time {
+        color: #9ca3af;
+    }
+
+    /* Adaptación para móviles */
+
+    @@media (max-width: 640px) {
+
+        #calendarioFisio {
+            padding: 8px;
+        }
+
+        #calendarioFisio .fc-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        #calendarioFisio .fc-toolbar-chunk {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        #calendarioFisio .fc-toolbar-title {
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        #calendarioFisio .fc-button {
+            font-size: .75rem;
+            padding: .35rem .5rem;
+        }
+
+        #calendarioFisio .fc-daygrid-day-number {
+            padding: 4px;
+            font-size: .75rem;
+        }
+
+    }
+
+</style>
+
+
+<!-- ========================================================= -->
+<!-- SCRIPTS -->
+<!-- ========================================================= -->
+
+@section Scripts {
+
+    <!-- FullCalendar -->
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <!-- Idiomas -->
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
+
+
     <script>
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // =====================================================
+            // RESUMEN DE EJERCICIOS DE LAS TARJETAS
+            // =====================================================
 
             const citas =
                 @Html.Raw(
                     System.Text.Json.JsonSerializer.Serialize(
-                        Model.Citas.Select(c => c.Id)
+                        Model.Citas?.Select(c => c.Id) ?? Enumerable.Empty<int>()
                     )
                 );
 
             citas.forEach(function (citaId) {
 
                 fetch(
-                    '@Url.Action(
-                        "ResumenCita",
-                        "Ejercicios"
-                    )' +
+                    '@Url.Action("ResumenCita", "Ejercicios")' +
                     '?citaId=' +
-                    citaId
+                    encodeURIComponent(citaId)
                 )
                 .then(function (response) {
 
                     if (!response.ok) {
-                        throw new Error();
+                        throw new Error("No fue posible cargar el resumen.");
                     }
 
                     return response.json();
@@ -228,8 +567,7 @@
 
                     const elemento =
                         document.getElementById(
-                            "ejercicios-resumen-" +
-                            citaId
+                            "ejercicios-resumen-" + citaId
                         );
 
                     if (!elemento) {
@@ -238,8 +576,7 @@
 
                     if (data.total === 0) {
 
-                        elemento.textContent =
-                            "Sin ejercicios";
+                        elemento.textContent = "Sin ejercicios";
 
                     }
                     else {
@@ -257,25 +594,189 @@
 
                     const elemento =
                         document.getElementById(
-                            "ejercicios-resumen-" +
-                            citaId
+                            "ejercicios-resumen-" + citaId
                         );
 
                     if (elemento) {
-
-                        elemento.textContent =
-                            "Ejercicios";
-
+                        elemento.textContent = "Ejercicios";
                     }
 
                 });
 
             });
 
-        }
-    );
 
-</script>
+            // =====================================================
+            // CALENDARIO DE CITAS
+            // =====================================================
 
-</div>
+            const calendarioElemento =
+                document.getElementById("calendarioFisio");
 
+            const calendarioError =
+                document.getElementById("calendarioError");
+
+            if (!calendarioElemento) {
+                return;
+            }
+
+            if (typeof FullCalendar === "undefined") {
+
+                if (calendarioError) {
+                    calendarioError.classList.remove("hidden");
+                }
+
+                return;
+            }
+
+            const calendario =
+                new FullCalendar.Calendar(
+                    calendarioElemento,
+                    {
+
+                        // Idioma español
+                        locale: "es",
+
+                        // Zona horaria local del navegador
+                        timeZone: "local",
+
+                        // Vista inicial
+                        initialView: "dayGridMonth",
+
+                        // Altura
+                        height: "auto",
+
+                        contentHeight: 550,
+
+                        expandRows: true,
+
+                        // Formato de fecha
+                        dayMaxEvents: true,
+
+                        // Navegación
+                        headerToolbar: {
+
+                            left: "prev,next today",
+
+                            center: "title",
+
+                            right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+
+                        },
+
+                        buttonText: {
+
+                            today: "Hoy",
+
+                            month: "Mes",
+
+                            week: "Semana",
+
+                            day: "Día",
+
+                            list: "Agenda"
+
+                        },
+
+                        allDayText: "Todo el día",
+
+                        noEventsText: "No hay citas para mostrar",
+
+                        // Formato de hora
+                        slotMinTime: "07:00:00",
+
+                        slotMaxTime: "22:00:00",
+
+                        slotDuration: "00:30:00",
+
+                        slotLabelInterval: "01:00",
+
+                        slotLabelFormat: {
+
+                            hour: "2-digit",
+
+                            minute: "2-digit",
+
+                            hour12: false
+
+                        },
+
+                        eventTimeFormat: {
+
+                            hour: "2-digit",
+
+                            minute: "2-digit",
+
+                            hour12: false
+
+                        },
+
+                        // Cargar citas desde el controlador
+                        events: {
+
+                            url: '@Url.Action("CalendarioCitas", "Fisioterapeuta")',
+
+                            method: "GET",
+
+                            failure: function () {
+
+                                if (calendarioError) {
+                                    calendarioError.classList.remove("hidden");
+                                }
+
+                            }
+
+                        },
+
+                        // Al seleccionar una cita
+                        eventClick: function (info) {
+
+                            if (info.event.id) {
+
+                                window.location.href =
+                                    '@Url.Action("DetalleCita", "Fisioterapeuta")' +
+                                    '?id=' +
+                                    encodeURIComponent(info.event.id);
+
+                            }
+
+                        },
+
+                        // Al cargar correctamente
+                        eventsSet: function () {
+
+                            if (calendarioError) {
+                                calendarioError.classList.add("hidden");
+                            }
+
+                        },
+
+                        // Evitar que el título se desborde
+                        eventDidMount: function (info) {
+
+                            const paciente =
+                                info.event.extendedProps.paciente || "";
+
+                            const hora =
+                                info.event.extendedProps.hora || "";
+
+                            const estado =
+                                info.event.extendedProps.estado || "";
+
+                            info.el.title =
+                                paciente +
+                                (hora ? " · " + hora : "") +
+                                (estado ? " · " + estado : "");
+
+                        }
+
+                    }
+                );
+
+            calendario.render();
+
+        });
+
+    </script>
+
+}
