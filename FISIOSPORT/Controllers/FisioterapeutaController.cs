@@ -1087,108 +1087,166 @@ namespace FISIOSPORT.Controllers
         public async Task<IActionResult> CrearCita(
             CrearCitaViewModel model)
         {
+            _logger.LogInformation(
+                "POST CrearCita recibido. PacienteId={PacienteId}, Fecha={Fecha}, Hora={Hora}",
+                model.PacienteId,
+                model.Fecha,
+                model.Hora);
+
+            // Validar que la cita tenga datos correctos antes de consultar/guardar.
             if (!ModelState.IsValid)
             {
-                model.PacientesDisponibles =
-                    await _context.Pacientes
-                        .OrderBy(p => p.Nombre)
-                        .ToListAsync();
+                var errores = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .SelectMany(x => x.Value!.Errors.Select(e =>
+                        $"{x.Key}: {e.ErrorMessage}"))
+                    .ToList();
 
-                await CargarHistoriaPaciente(
-                    model,
-                    model.PacienteId);
+                _logger.LogWarning(
+                    "ModelState inválido al crear cita. Errores: {Errores}",
+                    string.Join(" | ", errores));
 
-                return View(model);
-            }
-
-            var paciente =
-                await _context.Pacientes
-                    .FirstOrDefaultAsync(
-                        p => p.Id == model.PacienteId);
-
-            if (paciente == null)
-            {
+                await CargarFormularioCita(model);
                 ModelState.AddModelError(
-                    "PacienteId",
-                    "Paciente no encontrado.");
-
-                model.PacientesDisponibles =
-                    await _context.Pacientes
-                        .OrderBy(p => p.Nombre)
-                        .ToListAsync();
-
+                    string.Empty,
+                    "Revisa los campos del formulario; hay datos obligatorios o inválidos.");
                 return View(model);
             }
 
-            // =================================================
-            // SIGUIENTE SESIÓN PENDIENTE
-            // =================================================
+            try
+            {
+                if (model.PacienteId <= 0)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.PacienteId),
+                        "Selecciona un paciente válido.");
+                    await CargarFormularioCita(model);
+                    return View(model);
+                }
 
-            var siguienteSesion =
-                await _context.SesionesTratamiento
+                var paciente = await _context.Pacientes
+                    .FirstOrDefaultAsync(p => p.Id == model.PacienteId);
+
+                if (paciente == null)
+                {
+                    _logger.LogWarning(
+                        "No se encontró el paciente {PacienteId} al agendar cita.",
+                        model.PacienteId);
+                    ModelState.AddModelError(
+                        nameof(model.PacienteId),
+                        "No se encontró el paciente seleccionado.");
+                    await CargarFormularioCita(model);
+                    return View(model);
+                }
+
+                var fisioterapeutaId = IdActual;
+
+                // Buscar la siguiente sesión pendiente del tratamiento del paciente.
+                var siguienteSesion = await _context.SesionesTratamiento
                     .Include(s => s.Tratamiento)
                     .Where(s =>
-                        s.Tratamiento!.PacienteId ==
-                        paciente.Id &&
-
-                        s.Tratamiento.FisioterapeutaId ==
-                        IdActual &&
-
+                        s.Tratamiento != null &&
+                        s.Tratamiento.PacienteId == paciente.Id &&
+                        s.Tratamiento.FisioterapeutaId == fisioterapeutaId &&
                         s.Estado != "Completada" &&
-
                         !_context.Citas.Any(c =>
-                            c.SesionTratamientoId ==
-                            s.Id &&
-
+                            c.SesionTratamientoId == s.Id &&
                             c.Estado != "Completada" &&
-
-                            c.Estado != "Cancelada")
-                    )
+                            c.Estado != "Cancelada"))
                     .OrderBy(s => s.TratamientoId)
                     .ThenBy(s => s.NumeroSesion)
                     .FirstOrDefaultAsync();
 
-            var cita =
-                new Cita
+                var cita = new Cita
                 {
-                    FisioterapeutaId =
-                        IdActual,
-
-                    PacienteId =
-                        paciente.Id,
-
-                    SesionTratamientoId =
-                        siguienteSesion?.Id,
-
-                    Fecha =
-                        model.Fecha,
-
-                    Hora =
-                        model.Hora,
-
-                    Estado =
-                        "Pendiente",
-
-                    Notas =
-                        model.Notas?.Trim() ??
-                        string.Empty
+                    FisioterapeutaId = fisioterapeutaId,
+                    PacienteId = paciente.Id,
+                    SesionTratamientoId = siguienteSesion?.Id,
+                    Fecha = model.Fecha,
+                    Hora = model.Hora,
+                    Estado = "Pendiente",
+                    Notas = model.Notas?.Trim() ?? string.Empty
                 };
 
-            _context.Citas.Add(cita);
+                _context.Citas.Add(cita);
+                NormalizarDateTimesPendientes();
 
-            NormalizarDateTimesPendientes();
+                // Ejecuta las validaciones propias del controlador antes de guardar.
+                var erroresEntidad = ValidatePendingEntities();
+                if (erroresEntidad.Any())
+                {
+                    foreach (var (key, message) in erroresEntidad)
+                    {
+                        ModelState.AddModelError(key, message);
+                    }
 
-            await _context.SaveChangesAsync();
+                    _context.Entry(cita).State = EntityState.Detached;
+                    _logger.LogWarning(
+                        "Validación previa impidió guardar la cita: {Errores}",
+                        string.Join(" | ", erroresEntidad.Select(e => e.Message)));
 
-            TempData["MensajeExito"] =
-                siguienteSesion != null
-                    ? $"Cita creada correctamente para {paciente.Nombre}. " +
-                      $"Corresponde a la sesión " +
-                      $"{siguienteSesion.NumeroSesion}."
+                    await CargarFormularioCita(model);
+                    return View(model);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Cita guardada correctamente. CitaId={CitaId}, PacienteId={PacienteId}, FisioterapeutaId={FisioterapeutaId}",
+                    cita.Id,
+                    cita.PacienteId,
+                    cita.FisioterapeutaId);
+
+                TempData["MensajeExito"] = siguienteSesion != null
+                    ? $"Cita creada correctamente para {paciente.Nombre}. Corresponde a la sesión {siguienteSesion.NumeroSesion}."
                     : $"Cita creada correctamente para {paciente.Nombre}.";
 
-            return RedirectToAction(
-                nameof(Dashboard));
+                return RedirectToAction(nameof(Dashboard));
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error de base de datos al guardar cita para PacienteId={PacienteId}.",
+                    model.PacienteId);
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "No se pudo guardar la cita en la base de datos. Revisa los datos e inténtalo de nuevo. Si persiste, consulta los logs de Render.");
+
+                await CargarFormularioCita(model);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error inesperado al agendar cita para PacienteId={PacienteId}.",
+                    model.PacienteId);
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Ocurrió un error inesperado al agendar la cita. No se confirmó el guardado; revisa los logs de Render.");
+
+                await CargarFormularioCita(model);
+                return View(model);
+            }
+        }
+
+        // Recarga las listas y los datos auxiliares que necesita CrearCita.cshtml
+        // cuando el POST debe volver a mostrar el formulario.
+        private async Task CargarFormularioCita(CrearCitaViewModel modelo)
+        {
+            modelo.PacientesDisponibles = await _context.Pacientes
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+
+            if (modelo.PacienteId > 0)
+            {
+                await CargarHistoriaPaciente(
+                    modelo,
+                    modelo.PacienteId);
+            }
         }
 
         // =========================================================
